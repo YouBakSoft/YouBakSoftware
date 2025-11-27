@@ -6,6 +6,7 @@ public class Admin {
 	
     private String userName;
     private String password;
+    private String mes;
     private boolean loggedIn = false;
 
     public Admin(String userName, String password) {
