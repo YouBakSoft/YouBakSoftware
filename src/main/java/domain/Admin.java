@@ -1,22 +1,31 @@
 package domain;
 
 import java.io.*;
-import java.util.*;
 
 public class Admin {
 	
     private String userName;
     private String password;
+    private boolean loggedIn = false;
 
     public Admin(String userName, String password) {
         this.setUserName(userName);
         this.setPassword(password);
+        
+        new File("data").mkdirs();
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("data/admins.txt", true))) {
+            bw.write(userName + "," + password);
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
     }
 
-	public static void loginThrow(String username, String password) throws IOException {
+    public static void loginThrow(String username, String password) throws IOException {
         File file = new File("data/admins.txt");
         if (!file.exists()) {
-        	throw new IllegalArgumentException("Admin file not found!");
+            throw new IllegalArgumentException("Admin file not found!");
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -30,24 +39,39 @@ public class Admin {
         throw new IllegalArgumentException("Invalid credentials!");
     }
 	
-    public static void login(String username, String password) throws IOException {
-        loginThrow(username, password);
-        Session.login(username);
+    public void login(String password) throws IOException {
+        Admin.loginThrow(this.userName, password); 
+        this.loggedIn = true;
+    }
+	
+    public void logout() {
+        if (!this.loggedIn) {
+            throw new IllegalStateException("Admin is not logged in!");
+        }
+        this.loggedIn = false;
     }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public String getUserName() {
-		return userName;
-	}
+    public String getUserName() {
+        return userName;
+    }
 
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    public void setLoggedIn(boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
 }
