@@ -14,9 +14,7 @@ public class Admin {
     }
 
 	public static void loginThrow(String username, String password) throws IOException {
-		
         File file = new File("data/admins.txt");
-        
         if (!file.exists()) {
         	throw new IllegalArgumentException("Admin file not found!");
         }
@@ -30,6 +28,11 @@ public class Admin {
         }
 
         throw new IllegalArgumentException("Invalid credentials!");
+    }
+	
+    public static void login(String username, String password) throws IOException {
+        loginThrow(username, password);
+        Session.login(username);
     }
 
 	public String getPassword() {
