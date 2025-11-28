@@ -2,6 +2,7 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.FileWriter;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,16 @@ class bookTests {
 
 	private BookService service;
 
+	@BeforeEach
+	void clearFile() {
+	    try (FileWriter fw = new FileWriter("data/books.txt")) {
+	        fw.write("");    
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	
     @BeforeEach
     void setup() {
         service = new BookService();
