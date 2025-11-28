@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import domain.Book;
 import domain.User;
+import service.BookFineStrategy;
 import service.BookService;
 
 class bookServiceTest {
@@ -109,5 +110,34 @@ class bookServiceTest {
         assertTrue(u.canBorrow());
         Book b = service.borrowBook(u, "111");
         assertFalse(b.isAvailable());
+    }
+    
+    @Test
+    public void testCalculateFineWithStrategy() throws Exception {
+        
+        User u = new User("TestUser", "U01");
+        Book b = service.addBook("Old Book", "Author", "200");
+        service.borrowBook(u, "200");
+
+         
+        List<Book> allBooks = service.search("");
+        for (Book book : allBooks) {
+            if (book.getIsbn().equals("200")) {
+                book.setDueDate(LocalDate.now().minusDays(3));
+            }
+        }
+
+        var m = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
+        m.setAccessible(true);
+        m.invoke(service, allBooks);
+
+         
+        service.setFineStrategy(new BookFineStrategy());
+        List<Book> overdueBooks = service.getOverdueBooks();
+
+        for (Book book : overdueBooks) {
+            int fine = service.calculateFineForBook(book);
+            System.out.println(book.getTitle() + " - Fine: " + fine + " NIS");  
+        }
     }
 }

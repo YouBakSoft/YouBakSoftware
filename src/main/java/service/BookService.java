@@ -141,4 +141,54 @@ public class BookService {
 	        }
 	        return overdue;
 	    }
+	    
+	    // calculate Fine for books
+	    private FineStrategy fineStrategy;
+
+	    public void setFineStrategy(FineStrategy strategy) {
+	        this.fineStrategy = strategy;
+	    }
+	    
+	    public int calculateFineForBook(Book book) {
+	        if (book.getDueDate() == null || book.isAvailable()) return 0;
+
+	        LocalDate today = LocalDate.now();
+	        int overdueDays = (int) java.time.temporal.ChronoUnit.DAYS.between(book.getDueDate(), today);
+
+	        if (overdueDays > 0 && fineStrategy != null) {
+	            return fineStrategy.calculateFine(overdueDays);
+	        }
+	        return 0;
+	    }
+	    //send Email Service
+	    
+	    // Observers
+	    private List<Observer> observers = new ArrayList<>();
+
+	    public void addObserver(Observer observer) {
+	        observers.add(observer);
+	    }
+
+	    public void removeObserver(Observer observer) {
+	        observers.remove(observer);
+	    }
+
+	    private void notifyObservers(User user, String message) {
+	        for (Observer o : observers) {
+	            o.notify(user, message);
+	        }
+	    }
+
+	    public void sendReminders(List<User> users) {
+	        List<Book> overdueBooks = getOverdueBooks();
+
+	        for (User user : users) {
+	            long count = overdueBooks.stream().filter(b -> !b.isAvailable()).count();
+	            if (count > 0) {
+	                String message = "You have " + count + " overdue book(s).";
+	                notifyObservers(user, message);
+	            }
+	        }
+	    }
+	    
 }
