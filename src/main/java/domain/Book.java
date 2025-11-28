@@ -1,11 +1,16 @@
 package domain;
 
+import java.time.LocalDate;
+
 public class Book {
 	
 	private String title;
     private String author;
     private String isbn;
     private boolean available;
+    private LocalDate dueDate;
+
+
 
     public Book(String title, String author, String isbn) {
         if (title == null || author == null || isbn == null) {
@@ -16,6 +21,14 @@ public class Book {
         this.author = author;
         this.isbn = isbn;
         this.available = true;  
+        this.dueDate = null;
+    }
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 
     public String getTitle() { 

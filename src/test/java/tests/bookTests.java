@@ -3,6 +3,7 @@ package tests;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileWriter;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -123,6 +124,35 @@ class bookTests {
         List<Book> results = service.search("999");
         assertTrue(results.isEmpty());
     }
+    
+    // tests for borrow book 
+    @Test
+    void borrowBookSuccess() {
+        service.addBook("Clean Code", "Robert Martin", "111");
+
+        Book b = service.borrowBook("111");
+
+        assertFalse(b.isAvailable());
+        assertEquals(LocalDate.now().plusDays(28), b.getDueDate());
+    }
+
+    @Test
+    void borrowBookAlreadyBorrowed() {
+        service.addBook("Clean Code", "Robert Martin", "111");
+        service.borrowBook("111");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.borrowBook("111");
+        });
+    }
+
+    @Test
+    void borrowBookNotFound() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.borrowBook("999");
+        });
+    }
+
     
     @Test
     void search_caseInsensitive() {

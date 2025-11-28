@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +36,14 @@ public class BookService {
 
 	            while ((line = br.readLine()) != null) {
 	                String[] parts = line.split(";");
-	                if (parts.length == 4) {
+	                if (parts.length == 5) {
 	                    Book b = new Book(parts[0], parts[1], parts[2]);
 	                    b.setAvailable(Boolean.parseBoolean(parts[3]));
+
+	                    if (!parts[4].equals("null")) {
+	                        b.setDueDate(LocalDate.parse(parts[4]));
+	                    }
+
 	                    books.add(b);
 	                }
 	            }
@@ -54,10 +60,13 @@ public class BookService {
 	        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
 
 	            for (Book b : books) {
-	                bw.write(b.getTitle() + ";" +
-	                        b.getAuthor() + ";" +
-	                        b.getIsbn() + ";" +
-	                        b.isAvailable());
+	            	bw.write(
+	            		    b.getTitle() + ";" +
+	            		    b.getAuthor() + ";" +
+	            		    b.getIsbn() + ";" +
+	            		    b.isAvailable() + ";" +
+	            		    b.getDueDate()
+	            		);
 	                bw.newLine();
 	            }
 
@@ -108,5 +117,26 @@ public class BookService {
 	        }
 
 	        return result;
+	    }
+	    // borrow book 
+	    public Book borrowBook(String isbn) {
+	        List<Book> books = readBooksFromFile();
+
+	        for (Book b : books) {
+	            if (b.getIsbn().equals(isbn)) {
+
+	                if (!b.isAvailable()) {
+	                    throw new IllegalArgumentException("Book already borrowed");
+	                }
+
+	                b.setAvailable(false);
+	                b.setDueDate(LocalDate.now().plusDays(28));
+
+	                writeBooksToFile(books);
+	                return b;
+	            }
+	        }
+
+	        throw new IllegalArgumentException("Book not found");
 	    }
 }
