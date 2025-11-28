@@ -11,7 +11,6 @@ public class Book {
     private LocalDate dueDate;
 
 
-
     public Book(String title, String author, String isbn) {
         if (title == null || author == null || isbn == null) {
             throw new IllegalArgumentException("title, author and isbn must not be null");
@@ -23,6 +22,7 @@ public class Book {
         this.available = true;  
         this.dueDate = null;
     }
+    
     public LocalDate getDueDate() {
         return dueDate;
     }
@@ -33,16 +33,16 @@ public class Book {
 
     public String getTitle() { 
     	return title; 
-    	}
+    }
     public String getAuthor() { 
     	return author; 
-    	}
+    }
     public String getIsbn() { 
     	return isbn; 
-    	}
+    }
     public boolean isAvailable() { 
     	return available; 
-    	}
+    }
 
     public void setAvailable(boolean available) {
         this.available = available;
