@@ -1,1 +1,1 @@
-Clean Code;Robert Martin;111;true;null
+Book 300;Author;300;false;2025-11-26
