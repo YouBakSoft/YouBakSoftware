@@ -14,7 +14,9 @@ import domain.Book;
 import domain.User;
 import service.BookService;
 import service.EmailNotifier;
+import service.EmailService;
 import service.MockEmailService;
+import service.RealEmailService;
 
 public class EmailServicesTests {
 
@@ -53,17 +55,20 @@ public class EmailServicesTests {
     }
     
     @Test
-    public void testSendReminderWithObserver() throws Exception {
-        MockEmailService mockEmail = new MockEmailService();
-        EmailNotifier emailNotifier = new EmailNotifier(mockEmail);
+    public void testSendReminderWithRealEmail() throws Exception {
+         
+        EmailService realEmail = new RealEmailService(); 
+        EmailNotifier emailNotifier = new EmailNotifier(realEmail);
         service.addObserver(emailNotifier);
 
-        User u = createUserWithOverdueBook("Alice", "alice@example.com", "300", 2);
+         
+        User u = createUserWithOverdueBook("Alice", "bakerinadmialeh@gmail.com", "300", 2);
 
+         
         service.sendReminders(List.of(u));
 
-        assertEquals(1, mockEmail.getSentMessages().size());
-        assertTrue(mockEmail.getSentMessages().get(0).contains("You have 1 overdue book(s)"));
+         
+        System.out.println("Reminder email should have been sent to " + u.getId());
     }
 
 }

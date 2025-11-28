@@ -6,6 +6,7 @@ public class EmailNotifier implements Observer{
 	
 	private EmailService emailService;
 
+	
     public EmailNotifier(EmailService emailService) {
         this.emailService = emailService;
     }
@@ -14,5 +15,5 @@ public class EmailNotifier implements Observer{
     public void notify(User user, String message) {
         emailService.sendEmail(user.getId(), message);
     }
-
+    
 }
