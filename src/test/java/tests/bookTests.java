@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import domain.Book;
 import domain.BookService;
+import domain.User;
 
 class bookTests {
 
@@ -128,9 +129,10 @@ class bookTests {
     // tests for borrow book 
     @Test
     void borrowBookSuccess() {
+    	User user = new User("Baker", "100");
         service.addBook("Clean Code", "Robert Martin", "111");
 
-        Book b = service.borrowBook("111");
+        Book b = service.borrowBook(user ,"111");
 
         assertFalse(b.isAvailable());
         assertEquals(LocalDate.now().plusDays(28), b.getDueDate());
@@ -138,29 +140,31 @@ class bookTests {
 
     @Test
     void borrowBookAlreadyBorrowed() {
+    	User user = new User("Baker", "100");
         service.addBook("Clean Code", "Robert Martin", "111");
-        service.borrowBook("111");
+        service.borrowBook(user ,"111");
 
         assertThrows(IllegalArgumentException.class, () -> {
-            service.borrowBook("111");
+            service.borrowBook(user ,"111");
         });
     }
 
     @Test
     void borrowBookNotFound() {
+    	User user = new User("Baker", "100");
         assertThrows(IllegalArgumentException.class, () -> {
-            service.borrowBook("999");
+            service.borrowBook(user,"999");
         });
     }
     
     //tests for over due book 
     @Test
     void overdueBookDetection() {
-      
+    	User user = new User("Baker", "100");
         Book b = service.addBook("Old Book", "Author A", "101");
 
          
-        service.borrowBook("101");
+        service.borrowBook(user ,"101");
 
          
         List<Book> allBooks = service.search("");  
@@ -184,6 +188,36 @@ class bookTests {
         
         assertEquals(1, overdueBooks.size());
         assertEquals("101", overdueBooks.get(0).getIsbn());
+    }
+
+    // tests for pay fine 
+    
+    @Test
+    void borrowBookWithFineShouldFail() {
+        User user = new User("Baker", "100");
+        service.addBook("Clean Code", "Robert Martin", "111");
+
+        user.addFine(50);   
+        assertFalse(user.canBorrow());
+
+        assertThrows(IllegalStateException.class, () -> {
+            service.borrowBook(user, "111");
+        });
+    }
+
+    @Test
+    void payFullFineCanBorrow() {
+        User user = new User("Alice", "U01");
+        service.addBook("Clean Code", "Robert Martin", "111");
+
+        user.addFine(50);    
+        user.payFine(50);    
+        assertEquals(0, user.getFineBalance());
+        assertTrue(user.canBorrow());
+
+        Book b = service.borrowBook(user, "111");
+        assertFalse(b.isAvailable());
+        assertEquals(LocalDate.now().plusDays(28), b.getDueDate());
     }
 
 

@@ -119,7 +119,14 @@ public class BookService {
 	        return result;
 	    }
 	    // borrow book 
-	    public Book borrowBook(String isbn) {
+	    public Book borrowBook(User user, String isbn) {
+	        if (user == null) throw new IllegalArgumentException("User cannot be null");
+
+	        
+	        if (!user.canBorrow()) {
+	            throw new IllegalStateException("Cannot borrow books until full fine is paid");
+	        }
+
 	        List<Book> books = readBooksFromFile();
 
 	        for (Book b : books) {
@@ -139,6 +146,7 @@ public class BookService {
 
 	        throw new IllegalArgumentException("Book not found");
 	    }
+
 	    
 	    // over due book
 	    public List<Book> getOverdueBooks() {
