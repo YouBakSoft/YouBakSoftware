@@ -139,4 +139,20 @@ public class BookService {
 
 	        throw new IllegalArgumentException("Book not found");
 	    }
+	    
+	    // over due book
+	    public List<Book> getOverdueBooks() {
+	        List<Book> books = readBooksFromFile();
+	        List<Book> overdue = new ArrayList<>();
+
+	        LocalDate today = LocalDate.now();
+
+	        for (Book b : books) {
+	            if (!b.isAvailable() && b.getDueDate() != null && today.isAfter(b.getDueDate())) {
+	                overdue.add(b);
+	            }
+	        }
+
+	        return overdue;
+	    }
 }

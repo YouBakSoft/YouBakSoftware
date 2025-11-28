@@ -152,6 +152,40 @@ class bookTests {
             service.borrowBook("999");
         });
     }
+    
+    //tests for over due book 
+    @Test
+    void overdueBookDetection() {
+      
+        Book b = service.addBook("Old Book", "Author A", "101");
+
+         
+        service.borrowBook("101");
+
+         
+        List<Book> allBooks = service.search("");  
+        for (Book book : allBooks) {
+            if (book.getIsbn().equals("101")) {
+                book.setDueDate(LocalDate.now().minusDays(30));
+            }
+        }
+    
+        try {
+            java.lang.reflect.Method writeMethod = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
+            writeMethod.setAccessible(true);
+            writeMethod.invoke(service, allBooks);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Failed to write test book data");
+        }
+
+         
+        List<Book> overdueBooks = service.getOverdueBooks();
+        
+        assertEquals(1, overdueBooks.size());
+        assertEquals("101", overdueBooks.get(0).getIsbn());
+    }
+
 
     
     @Test
