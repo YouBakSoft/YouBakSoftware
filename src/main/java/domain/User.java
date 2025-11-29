@@ -26,6 +26,10 @@ public class User {
     public double getFineBalance() {
         return fineBalance;
     }
+    
+    public void setFineBalance(double fineBalance) {
+    	this.fineBalance=fineBalance;
+    }
 
      
     public void addFine(double amount) {
