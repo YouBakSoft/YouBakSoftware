@@ -4,7 +4,7 @@ import domain.User;
 
 public class EmailNotifier implements Observer{
 	
-	private EmailService emailService;
+	private EmailService emailService; // emailService
 
 	
     public EmailNotifier(EmailService emailService) {
