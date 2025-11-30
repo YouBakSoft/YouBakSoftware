@@ -1,8 +1,10 @@
 package domain;
 
+import java.util.Objects;
+
 public class User {
 
-	private String name;
+    private String name;
     private String id;
     private double fineBalance;
 
@@ -26,18 +28,16 @@ public class User {
     public double getFineBalance() {
         return fineBalance;
     }
-    
+
     public void setFineBalance(double fineBalance) {
-    	this.fineBalance=fineBalance;
+        this.fineBalance = fineBalance;
     }
 
-     
     public void addFine(double amount) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
         fineBalance += amount;
     }
 
-     
     public void payFine(double amount) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
         if (amount >= fineBalance) {
@@ -47,8 +47,20 @@ public class User {
         }
     }
 
-     
     public boolean canBorrow() {
         return fineBalance == 0;
+    }
+
+    // --- Important: Override equals and hashCode ---
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User u)) return false;
+        return Objects.equals(id, u.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

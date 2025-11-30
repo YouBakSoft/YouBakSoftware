@@ -2,18 +2,13 @@ package domain;
 
 import java.io.*;
 
+import service.BookService;
+import service.UserService;
+
 public class Admin extends Staff {
 
     public Admin(String userName, String password) {
         super(userName, password); 
-        
-        new File("data").mkdirs();
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("data/admins.txt", true))) {
-            bw.write(userName + "," + password);
-            bw.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void loginThrow(String username, String password) throws IOException {
@@ -42,4 +37,19 @@ public class Admin extends Staff {
         if (!this.isLoggedIn()) throw new IllegalStateException("Admin is not logged in!");
         this.setLoggedIn(false);
     }
+    
+    public boolean unregisterUser(User user, UserService userService, BookService bookService) {
+
+        if (!this.isLoggedIn())
+            throw new IllegalStateException("Admin must be logged in");
+
+        if (user.getFineBalance() > 0)
+            throw new IllegalStateException("User has unpaid fines");
+
+        if (bookService.hasActiveLoans(user))
+            throw new IllegalStateException("User still has borrowed books");
+
+        return userService.unregisterUser(user);
+    }
+
 }

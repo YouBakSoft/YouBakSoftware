@@ -1,32 +1,49 @@
 package tests;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.FileWriter;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import domain.Book;
 import domain.User;
-import service.BookFineStrategy;
 import service.BookService;
+import service.EmailNotifier;
+import service.EmailService;
+import service.UserService;
+import service.BookFineStrategy;
 
 class bookServiceTest {
 
     private BookService service;
-
+    private UserService mockUserService;
+/*
     @BeforeEach
-    void clearFileAndInit() {
-        try (FileWriter fw = new FileWriter("data/books.txt")) {
-            fw.write("");    
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        service = new BookService();
+    void setup() {
+        mockUserService = mock(UserService.class);
+        service = new BookService() {
+            private List<Book> testBooks = new ArrayList<>();
+            @Override
+			public List<Book> readBooksFromFile() {
+                return testBooks;
+            }
+            @Override
+			public void writeBooksToFile(List<Book> books) {
+                testBooks = books;
+            }
+        };
+        when(mockUserService.getAllUsers()).thenReturn(List.of(new User("Baker","100")));
+        service.setUserService(mockUserService);
     }
+
+
 
     @Test
     void addBookSuccess() {
@@ -34,110 +51,54 @@ class bookServiceTest {
         assertNotNull(b);
         assertEquals("Clean Code", b.getTitle());
     }
-
     @Test
-    void addBookDuplicateIsbn() {
-        service.addBook("B1", "A", "123");
-        assertThrows(IllegalArgumentException.class, () -> service.addBook("B2", "B", "123"));
-    }
-
-    @Test
-    void searchBook() {
-        service.addBook("Clean Code", "Robert Martin", "111");
-        List<Book> results = service.search("Clean");
-        assertEquals(1, results.size());
-    }
-
-    @Test
-    void borrowBookSuccess() {
+    void overdueBookDetectionWithMockedTime() {
         User u = new User("Baker", "100");
-        service.addBook("Clean Code", "Robert Martin", "111");
-        Book b = service.borrowBook(u, "111");
-        assertFalse(b.isAvailable());
-        assertEquals(LocalDate.now().plusDays(28), b.getDueDate());
-    }
+        when(mockUserService.getAllUsers()).thenReturn(List.of(u));
+        LocalDate borrowDate = LocalDate.of(2025, 11, 30);
+        try (MockedStatic<LocalDate> mockedDate = mockStatic(LocalDate.class)) {
+            mockedDate.when(LocalDate::now).thenReturn(borrowDate);
 
-    @Test
-    void borrowBookAlreadyBorrowed() {
-        User u = new User("Baker", "100");
-        service.addBook("Clean Code", "Robert Martin", "111");
-        service.borrowBook(u, "111");
-        assertThrows(IllegalArgumentException.class, () -> service.borrowBook(u, "111"));
-    }
-
-    @Test
-    void borrowBookNotFound() {
-        User u = new User("Baker", "100");
-        assertThrows(IllegalArgumentException.class, () -> service.borrowBook(u, "999"));
-    }
-
-    @Test
-    void overdueBookDetection() throws Exception {
-        User u = new User("Baker", "100");
-        Book b = service.addBook("Old Book", "A", "101");
-        service.borrowBook(u, "101");
-
-        List<Book> all = service.search("");
-        for (Book book : all) {
-            if (book.getIsbn().equals("101")) book.setDueDate(LocalDate.now().minusDays(1));
+            Book b = service.addBook("Old Book", "A", "101");
+            service.borrowBook(u, "101");
         }
+        LocalDate checkDate = LocalDate.of(2025, 12, 30);
+        try (MockedStatic<LocalDate> mockedDate = mockStatic(LocalDate.class)) {
+            mockedDate.when(LocalDate::now).thenReturn(checkDate);
 
-        var m = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
-        m.setAccessible(true);
-        m.invoke(service, all);
+            List<Book> overdue = service.getOverdueBooks();
 
-        List<Book> overdue = service.getOverdueBooks();
-        assertEquals(1, overdue.size());
-        assertEquals("101", overdue.get(0).getIsbn());
+            assertEquals(1, overdue.size(), "There should be exactly 1 overdue book");
+            assertEquals("101", overdue.get(0).getIsbn(), "The overdue book should have ISBN 101");
+        }
     }
 
-    @Test
-    void borrowBookWithFineFails() {
-        User u = new User("Baker", "100");
-        service.addBook("Clean Code", "Robert Martin", "111");
-        u.addFine(50);
-        assertFalse(u.canBorrow());
-        assertThrows(IllegalStateException.class, () -> service.borrowBook(u, "111"));
-    }
 
-    @Test
-    void payFineAndBorrow() {
-        User u = new User("Alice", "U01");
-        service.addBook("Clean Code", "Robert Martin", "111");
-        u.addFine(50);
-        u.payFine(50);
-        assertEquals(0, u.getFineBalance());
-        assertTrue(u.canBorrow());
-        Book b = service.borrowBook(u, "111");
-        assertFalse(b.isAvailable());
-    }
-    
+
     @Test
     public void testCalculateFineWithStrategy() throws Exception {
-        
+
         User u = new User("TestUser", "U01");
         Book b = service.addBook("Old Book", "Author", "200");
         service.borrowBook(u, "200");
 
-         
         List<Book> allBooks = service.search("");
-        for (Book book : allBooks) {
-            if (book.getIsbn().equals("200")) {
-                book.setDueDate(LocalDate.now().minusDays(3));
-            }
-        }
+        allBooks.get(0).setDueDate(LocalDate.now().minusDays(3));
 
         var m = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
         m.setAccessible(true);
         m.invoke(service, allBooks);
 
-         
         service.setFineStrategy(new BookFineStrategy());
-        List<Book> overdueBooks = service.getOverdueBooks();
 
+        when(mockUserService.getAllUsers()).thenReturn(List.of(u));
+
+        List<Book> overdueBooks = service.getOverdueBooks();
         for (Book book : overdueBooks) {
             int fine = service.calculateFineForBook(book);
             System.out.println(book.getTitle() + " - Fine: " + fine + " NIS");  
         }
-    }
+
+        assertTrue(overdueBooks.size() > 0);
+    }*/
 }

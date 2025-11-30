@@ -53,6 +53,68 @@ public class UserService {
         }
         return users;
     }
+    
+    public void addFine(User user, double amount) {
+        if (user == null) throw new IllegalArgumentException("User cannot be null");
+        user.addFine(amount);                  // update in memory
+        saveUsers(getAllUsers());              // persist changes to file
+    }
+    
+    public void payFine(User user, double amount, BookService bookService, CDService cdService) {
+        if (user == null) throw new IllegalArgumentException("User cannot be null");
+        if (amount <= 0) throw new IllegalArgumentException("Invalid amount");
+
+        List<User> users = getAllUsers();
+
+        for (User u : users) {
+            if (u.equals(user)) {
+                u.payFine(amount);  // deduct amount
+
+                // Automatically return all overdue media if balance is zero
+                if (u.getFineBalance() == 0) {
+                    if (bookService != null) bookService.returnAllMediaForUser(u);
+                    if (cdService != null) cdService.returnAllMediaForUser(u);
+                }
+                break;
+            }
+        }
+
+        saveUsers(users);
+    }
+
+    
+
+    
+    public void applyFine(User borrower, double fine) {
+        if (borrower == null || fine <= 0) return;
+
+        // Load all users
+        List<User> users = getAllUsers();
+
+        // Find the user and update fine
+        for (User u : users) {
+            if (u.equals(borrower)) {
+                u.addFine(fine);
+                break;
+            }
+        }
+        saveUsers(users);
+    }
+    
+    public boolean unregisterUser(User user) {
+        if (user == null) return false;
+
+        List<User> users = getAllUsers();
+        boolean removed = users.removeIf(u -> u.equals(user));
+
+        if (removed) {
+            saveUsers(users);
+        }
+        return removed;
+    }
+
+
+
 
 
     public void saveUsers(List<User> users) {
