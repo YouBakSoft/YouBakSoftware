@@ -6,14 +6,16 @@ public class User {
 
     private String name;
     private String id;
+    private String email;
     private double fineBalance;
 
-    public User(String name, String id) {
-        if (name == null || id == null) {
+    public User(String name, String id ,String email) {
+        if (name == null || id == null || email == null) {
             throw new IllegalArgumentException("Name and ID cannot be null");
         }
         this.name = name;
         this.id = id;
+        this.email = email;
         this.fineBalance = 0;
     }
 
@@ -51,7 +53,6 @@ public class User {
         return fineBalance == 0;
     }
 
-    // --- Important: Override equals and hashCode ---
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,4 +64,12 @@ public class User {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }

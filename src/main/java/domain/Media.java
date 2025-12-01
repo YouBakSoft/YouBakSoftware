@@ -45,14 +45,32 @@ public abstract class Media {
         return fineStrategy.calculateFine((int) overdueDays);
     }
 
-    // Getters and setters
-    public String getTitle() { return title; }
-    public boolean isAvailable() { return available; }
-    public void setAvailable(boolean available) { this.available = available; }
-    public LocalDate getDueDate() { return dueDate; }
-    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
-    public User getBorrowedBy() { return borrowedBy; }
-    public void setBorrowedBy(User borrowedBy) { this.borrowedBy = borrowedBy; }
-    public int getFineApplied() { return fineApplied; }
-    public void setFineApplied(int fineApplied) { this.fineApplied = fineApplied; }
+    public String getTitle() {
+    	return title; 
+    	}
+    public boolean isAvailable() {
+    	return available;
+    	}
+    public void setAvailable(boolean available) {
+    	this.available = available;
+    	}
+    public LocalDate getDueDate() {
+    	return dueDate; 
+    	}
+    public void setDueDate(LocalDate dueDate) { 
+    	this.dueDate = dueDate; 
+    	}
+    public User getBorrowedBy() {
+    	return borrowedBy;
+    	}
+    public void setBorrowedBy(User borrowedBy) {
+    	this.borrowedBy = borrowedBy; 
+    	}
+    public int getFineApplied() {
+    	return fineApplied; 
+    	}
+    public void setFineApplied(int fineApplied) {
+    	this.fineApplied = fineApplied;
+    	}
+
 }

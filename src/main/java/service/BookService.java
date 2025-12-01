@@ -58,7 +58,7 @@ public class BookService extends MultiMediaService<Book> {
         for (Book b : books) {
             if (b.getIsbn().equals(isbn)) {
                 if (!b.isAvailable()) throw new IllegalStateException("Book already borrowed");
-                b.borrow(user); // sets available=false and dueDate automatically
+                b.borrow(user); 
                 writeToFile(books);
                 return b;
             }
@@ -97,7 +97,6 @@ public class BookService extends MultiMediaService<Book> {
                         System.out.println("Warning: invalid date for book " + b.getTitle());
                     }
                 }
-
                 if (parts.length >= 6 && userService != null) {
                     String userId = parts[5].trim();
                     User u = userService.getAllUsers().stream()
@@ -105,7 +104,11 @@ public class BookService extends MultiMediaService<Book> {
                             .findFirst().orElse(null);
                     b.setBorrowedBy(u);
                 }
-
+                if (parts.length >= 7) {
+                    b.setFineApplied(Integer.parseInt(parts[6].trim()));
+                } else {
+                    b.setFineApplied(0);
+                }
                 books.add(b);
             }
         } catch (IOException e) {
@@ -115,7 +118,7 @@ public class BookService extends MultiMediaService<Book> {
 	}
 
 	@Override
-	protected void writeToFile(List<Book> list) {
+	public void writeToFile(List<Book> list) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (Book b : list) {
                 String userId = (b.getBorrowedBy() != null) ? b.getBorrowedBy().getId() : "null";
@@ -125,7 +128,9 @@ public class BookService extends MultiMediaService<Book> {
                         b.getIsbn(),
                         Boolean.toString(b.isAvailable()),
                         b.getDueDate() != null ? b.getDueDate().toString() : "null",
-                        userId));
+                        userId,
+                        Integer.toString(b.getFineApplied()))); 
+
                 bw.newLine();
             }
         } catch (IOException e) {

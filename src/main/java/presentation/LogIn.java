@@ -20,13 +20,14 @@ public class LogIn {
         this.userService = userService;
     }
 
-    // ================= ADMIN LOGIN =================
     public Admin adminLogin() {
         printCenteredHeader("ADMIN LOGIN");
 
-        String username = promptCentered("Username: ");
-        String password = promptCentered("Password: ");
-
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        System.out.print("Password: ");
+        String password = scanner.nextLine(); 
         try {
             Admin admin = new Admin(username, password);
             admin.login(password);
@@ -37,42 +38,45 @@ public class LogIn {
         } catch (IllegalArgumentException ex) {
             System.out.println(ConsoleColors.RED + centerText(ex.getMessage()) + ConsoleColors.RESET);
         }
+
         return null;
     }
 
-    // ================= USER LOGIN =================
     public User userLogin() {
         printCenteredHeader("USER LOGIN");
 
-        String name = promptCentered("Name: ");
-        String id = promptCentered("ID: ");
-
-        // Try to find existing user
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Email: ");
+        String id = scanner.nextLine();
+        System.out.print("ID: ");
+        String email = scanner.nextLine();
         User user = userService.getAllUsers().stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()
                 .orElse(null);
-
         if (user == null) {
-            user = new User(name, id);
+            user = new User(name, id,email);
             userService.addUser(user);
             System.out.println(ConsoleColors.GREEN + centerText("New user created successfully!") + ConsoleColors.RESET);
         } else if (!user.getName().equals(name)) {
             System.out.println(ConsoleColors.RED + centerText("ID already exists with a different name!") + ConsoleColors.RESET);
             return null;
         }
-
         System.out.println(ConsoleColors.GREEN + centerText("Welcome " + user.getName() + "!") + ConsoleColors.RESET);
         return user;
     }
 
-    // ================= LIBRARIAN LOGIN =================
+
     public Librarian libLogin(BookService bookService, CDService cdService) {
         printCenteredHeader("LIBRARIAN LOGIN");
 
-        String user = promptCentered("Username: ");
-        String pass = promptCentered("Password: ");
-
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Username: ");
+        String user = scanner.nextLine();
+        System.out.print("Password: ");
+        String pass = scanner.nextLine(); 
         try {
             Librarian.loginThrow(user, pass);
             System.out.println(ConsoleColors.GREEN + centerText("Librarian login successful!") + ConsoleColors.RESET);
@@ -85,12 +89,11 @@ public class LogIn {
         return null;
     }
 
-    // ==================== HELPERS ====================
 
     private static void printCenteredHeader(String title) {
         System.out.println("=".repeat(TOTAL_WIDTH));
         int padding = (TOTAL_WIDTH - title.length()) / 2;
-        System.out.println(" ".repeat(Math.max(padding, 0)) + ConsoleColors.YELLOW + title + ConsoleColors.RESET);
+        System.out.println(" ".repeat(Math.max(padding, 0)) + ConsoleColors.PURPLE + title + ConsoleColors.RESET);
         System.out.println("-".repeat(TOTAL_WIDTH));
     }
 

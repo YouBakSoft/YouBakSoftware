@@ -17,22 +17,7 @@ public class UserService {
             catch (IOException e) { throw new RuntimeException(e); }
         }
     }
-    
-
-
-    public void addUser(User user) {
-
-        List<User> users = getAllUsers();
-        for (User u : users) {
-            if (u.getId().equals(user.getId())) {
-                return;
-            }
-        }
-
-        users.add(user);
-        saveUsers(users);
-    }
-
+   
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
@@ -40,37 +25,59 @@ public class UserService {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length != 3) continue;
+                if (parts.length != 4) continue; 
+                String name = parts[0];
+                String id = parts[1];
+                String email = parts[2];
+                double fine = Double.parseDouble(parts[3]);
 
-                User u = new User(parts[0], parts[1]);
-                double fine = Double.parseDouble(parts[2]);
+                User u = new User(name, id, email);
                 u.setFineBalance(fine);
 
                 users.add(u);
             }
-        } catch (IOException e) { 
-            e.printStackTrace(); 
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return users;
     }
+
+    public void saveUsers(List<User> users) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (User u : users) {
+                bw.write(u.getName() + ";" + u.getId() + ";" + u.getEmail() + ";" + u.getFineBalance());
+                bw.newLine();
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void addUser(User user) {
+        List<User> users = getAllUsers();
+        for (User u : users) {
+            if (u.getId().equals(user.getId())) return;
+        }
+        users.add(user);
+        saveUsers(users);
+    }
+
     
     public void addFine(User user, double amount) {
         if (user == null) throw new IllegalArgumentException("User cannot be null");
-        user.addFine(amount);                  // update in memory
-        saveUsers(getAllUsers());              // persist changes to file
+        user.addFine(amount);                 
+        saveUsers(getAllUsers());             
     }
     
     public void payFine(User user, double amount, BookService bookService, CDService cdService) {
         if (user == null) throw new IllegalArgumentException("User cannot be null");
         if (amount <= 0) throw new IllegalArgumentException("Invalid amount");
+        if (amount > user.getFineBalance())
+            throw new IllegalArgumentException("Amount cannot exceed current fine balance");
 
         List<User> users = getAllUsers();
-
         for (User u : users) {
             if (u.equals(user)) {
-                u.payFine(amount);  // deduct amount
-
-                // Automatically return all overdue media if balance is zero
+                u.payFine(amount); 
+                ReportFine.generateFineReceipt(u, amount, true, null);
                 if (u.getFineBalance() == 0) {
                     if (bookService != null) bookService.returnAllMediaForUser(u);
                     if (cdService != null) cdService.returnAllMediaForUser(u);
@@ -82,16 +89,10 @@ public class UserService {
         saveUsers(users);
     }
 
-    
 
-    
     public void applyFine(User borrower, double fine) {
         if (borrower == null || fine <= 0) return;
-
-        // Load all users
         List<User> users = getAllUsers();
-
-        // Find the user and update fine
         for (User u : users) {
             if (u.equals(borrower)) {
                 u.addFine(fine);
@@ -103,10 +104,8 @@ public class UserService {
     
     public boolean unregisterUser(User user) {
         if (user == null) return false;
-
         List<User> users = getAllUsers();
         boolean removed = users.removeIf(u -> u.equals(user));
-
         if (removed) {
             saveUsers(users);
         }
@@ -114,15 +113,4 @@ public class UserService {
     }
 
 
-
-
-
-    public void saveUsers(List<User> users) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            for (User u : users) {
-                bw.write(u.getName() + ";" + u.getId() + ";" + u.getFineBalance());
-                bw.newLine();
-            }
-        } catch (IOException e) { e.printStackTrace(); }
-    }
 }

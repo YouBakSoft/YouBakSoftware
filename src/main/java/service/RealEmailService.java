@@ -1,22 +1,24 @@
 package service;
 
-import java.util.Properties;
-
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.util.Properties;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class RealEmailService implements EmailService {
 
-    private final String senderEmail = "bakergaming77@gmail.com";
-    private final String senderPassword = "ncyq erpo bqdn qmax";
+	Dotenv dotenv = Dotenv.load();
+	String senderEmail = dotenv.get("SENDER_EMAIL");
+	String senderPassword = dotenv.get("SENDER_PASSWORD");
 
     @Override
     public void sendEmail(String to, String message) {
+        if (to == null || to.isBlank()) {
+            System.out.println("Skipping email: recipient is null or empty.");
+            return;  // prevent any NullPointerException
+        }
 
         try {
             Properties props = new Properties();
@@ -39,11 +41,12 @@ public class RealEmailService implements EmailService {
             msg.setText(message);
 
             Transport.send(msg);
-
             System.out.println("Email sent successfully to " + to);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+
 }

@@ -51,7 +51,6 @@ public class CDService extends MultiMediaService<CD> {
         if (!canUserBorrow(user, new ArrayList<>(cds))) {
             throw new IllegalStateException("Cannot borrow CD: overdue media or unpaid fines");
         }
-
         for (CD cd : cds) {
             if (cd.getId().equals(id)) {
                 if (!cd.isAvailable()) throw new IllegalStateException("CD already borrowed");
@@ -75,6 +74,7 @@ public class CDService extends MultiMediaService<CD> {
                         cd.getTitle().toLowerCase().contains(q) ||
                         cd.getArtist().toLowerCase().contains(q) ||
                         cd.getId().toLowerCase().contains(q)
+                        
                 )
                 .toList();
     }
@@ -107,7 +107,11 @@ public class CDService extends MultiMediaService<CD> {
                             .orElse(null);
                     cd.setBorrowedBy(u);
                 }
-
+                if (parts.length >= 7) {
+                    cd.setFineApplied(Integer.parseInt(parts[6].trim()));
+                } else {
+                    cd.setFineApplied(0);
+                }
                 cds.add(cd);
             }
         } catch (IOException e) {
@@ -117,22 +121,31 @@ public class CDService extends MultiMediaService<CD> {
 	}
 
 	@Override
-	protected void writeToFile(List<CD> list) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
-        	for (CD cd : list) {
-                String userId = (cd.getBorrowedBy() != null) ? cd.getBorrowedBy().getId() : "null";
-                String due = (cd.getDueDate() != null) ? cd.getDueDate().toString() : "null";
-                bw.write(String.join(";", cd.getTitle(), cd.getArtist(), cd.getId(),
-                        Boolean.toString(cd.isAvailable()), due, userId));
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error writing CDs file", e);
-        }
-		
+	public void writeToFile(List<CD> list) {
+	    try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
+	        for (CD cd : list) {
+	            String userId = (cd.getBorrowedBy() != null)
+	                    ? cd.getBorrowedBy().getId()
+	                    : "null";
+
+	            String due = (cd.getDueDate() != null)
+	                    ? cd.getDueDate().toString()
+	                    : "null";
+
+	            bw.write(String.join(";",
+	                    cd.getTitle(),
+	                    cd.getArtist(),
+	                    cd.getId(),
+	                    Boolean.toString(cd.isAvailable()),
+	                    due,
+	                    userId,
+	                    Integer.toString(cd.getFineApplied()  
+	            )));
+	            bw.newLine();
+	        }
+	    } catch (IOException e) {
+	        throw new RuntimeException("Error writing CDs file", e);
+	    }
 	}
-
-
-
 
 }

@@ -2,6 +2,7 @@ package domain;
 
 import service.BookService;
 import service.CDService;
+import service.ReportFine;
 import service.UserService;
 import presentation.ConsoleColors;
 
@@ -48,31 +49,61 @@ public class Librarian extends Staff {
             return; 
         }
         List<Book> overdueBooks = bookService.getOverdueMedia();
-        applyFines(overdueBooks, userService);
+        applyFines(userService);
         List<CD> overdueCDs = cdService.getOverdueMedia();
-        applyFines(overdueCDs, userService);
+        applyFines(userService);
         lastFineDate = today;
     }
 
     
-    private <T extends Media> void applyFines(List<T> mediaList, UserService userService) {
-        for (T m : mediaList) {
-            User borrower = m.getBorrowedBy();
-            if (borrower == null || m.getDueDate() == null) continue;
+    private void applyFines(UserService userService) {
+        // Get overdue media lists
+        List<Book> overdueBooks = bookService.getOverdueMedia();
+        List<CD> overdueCDs = cdService.getOverdueMedia();
+        boolean booksUpdated = false;
+        for (Book b : overdueBooks) {
+            User borrower = b.getBorrowedBy();
+            if (borrower == null || b.getDueDate() == null) continue;
+            if (b.getFineApplied() > 0) continue;  
 
-            long overdueDays = java.time.temporal.ChronoUnit.DAYS.between(m.getDueDate(), LocalDate.now());
+            long overdueDays = java.time.temporal.ChronoUnit.DAYS.between(b.getDueDate(), LocalDate.now());
             if (overdueDays > 0) {
-                int fine = 0;
-                if (m instanceof Book) {
-                    fine = bookService.calculateFine((Book) m);
-                } else if (m instanceof CD) {
-                    fine = cdService.calculateFine((CD) m);
-                }
+                int fine = bookService.calculateFine(b);
                 userService.applyFine(borrower, fine);
-                System.out.println(ConsoleColors.RED + "Fine issued to " + borrower.getName() +
-                        " (" + borrower.getId() + "): " + fine + " NIS" +
-                        " | Overdue by " + overdueDays + " days | " + m.getTitle() + ConsoleColors.RESET);
+                ReportFine.generateFineReceipt(borrower, fine, false, b);
+                System.out.println(ConsoleColors.RED + " Fine issued to " + borrower.getName() +
+                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
+                        " | Overdue by " + overdueDays + " days | 📚 " + b.getTitle() + ConsoleColors.RESET);
+                b.setFineApplied(1);
+                booksUpdated = true;
             }
         }
+        if (booksUpdated) bookService.writeToFile(overdueBooks);
+
+        // Apply fines to CDs
+        boolean cdsUpdated = false;
+        for (CD cd : overdueCDs) {
+            User borrower = cd.getBorrowedBy();
+            if (borrower == null || cd.getDueDate() == null) continue;
+            if (cd.getFineApplied() > 0) continue;  // skip if fine already applied
+            long overdueDays = java.time.temporal.ChronoUnit.DAYS.between(cd.getDueDate(), LocalDate.now());
+            if (overdueDays > 0) {
+                int fine = cdService.calculateFine(cd);
+                userService.applyFine(borrower, fine);
+                ReportFine.generateFineReceipt(borrower, fine, false, cd);
+                System.out.println(ConsoleColors.RED + " Fine issued to " + borrower.getName() +
+                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
+                        " | Overdue by " + overdueDays + " days | 💿 " + cd.getTitle() + ConsoleColors.RESET);
+
+                cd.setFineApplied(1);
+                cdsUpdated = true;
+            }
+        }
+        if (cdsUpdated) cdService.writeToFile(overdueCDs);
+
+        lastFineDate = LocalDate.now();
     }
+
+
+
 }

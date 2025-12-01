@@ -38,10 +38,8 @@ public abstract class MultiMediaService<T extends Media>
     @Override
     public int calculateFine(T media) {
         if (media.getDueDate() == null || media.isAvailable()) return 0;
-
         long overdueDays = java.time.temporal.ChronoUnit.DAYS
                 .between(media.getDueDate(), LocalDate.now());
-
         if (overdueDays > 0 && fineStrategy != null) {
             return fineStrategy.calculateFine((int) overdueDays);
         }
@@ -67,8 +65,6 @@ public abstract class MultiMediaService<T extends Media>
                 .anyMatch(m -> !m.isAvailable()
                         && user.equals(m.getBorrowedBy()));
     }
-
-
 
     @Override
     public void returnAllMediaForUser(User user) {
@@ -109,6 +105,7 @@ public abstract class MultiMediaService<T extends Media>
             }
         }
     }
+
     
 
     protected abstract List<T> readFromFile();

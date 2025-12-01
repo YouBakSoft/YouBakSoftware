@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 public class CD extends Media {
 
-    private String id;       // unique identifier for CD
-    private String artist;   // optional, like author for books
+    private String id;       
+    private String artist;
 
     public CD(String title, String artist, String id) {
         super(title);
@@ -21,10 +21,9 @@ public class CD extends Media {
         }
         this.borrowedBy = user;
         this.available = false;
-        this.dueDate = LocalDate.now().plusDays(7); // CDs = 7 days
+        this.dueDate = LocalDate.now().plusDays(7); 
     }
 
-    // Getters
     public String getId() { return id; }
     public String getArtist() { return artist; }
 }

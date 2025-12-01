@@ -24,12 +24,9 @@ public class Dashboard {
         this.bookService = bookService;
         this.cdService = cdService;
         this.userService = userService;
-
-        // Setup strategies & notifications
         bookService.setUserService(userService);
         bookService.setFineStrategy(new BookFineStrategy());
         bookService.addObserver(new EmailNotifier(new RealEmailService()));
-
         cdService.setUserService(userService);
         cdService.setFineStrategy(new CDFineStrategy());
         cdService.addObserver(new EmailNotifier(new RealEmailService()));
@@ -52,7 +49,8 @@ public class Dashboard {
                 case "4" -> sendReminders();
                 case "5" -> addLibrarian();
                 case "6" -> unregisterUser();
-                case "7" -> { return; } // Logout
+                case "7" -> showInactiveUsers(); // NEW
+                case "8" -> { return; } // Logout
                 default -> {
                     System.out.println(ConsoleColors.RED + "Invalid choice!" + ConsoleColors.RESET);
                     pause();
@@ -60,6 +58,7 @@ public class Dashboard {
             }
         }
     }
+
 
     private void printHeader() {
         int totalWidth = LEFT_WIDTH + RIGHT_WIDTH;
@@ -72,14 +71,15 @@ public class Dashboard {
 
         // Menu options
         String[] menu = {
-        	    "➕ [0] Add Book/CD",
-        	    "🔍 [1] Search Book/CD",
-        	    "📚 [2] Borrow Book/CD",
-        	    "⏰ [3] Show Overdue",
-        	    "✉️ [4] Send Reminders",
-        	    "👤➕ [5] Add Librarian",
-        	    "👤❌ [6] Unregister User",
-        	    "🚪 [7] Logout"
+        	    " [0] Add Book/CD",
+        	    " [1] Search Book/CD",
+        	    " [2] Borrow Book/CD",
+        	    " [3] Show Overdue",
+        	    " [4] Send Reminders",
+        	    " [5] Add Librarian",
+        	    " [6] Unregister User",
+        	    " [7] Inactive Users",
+        	    " [8] Logout"
         	};
 
 
@@ -128,8 +128,10 @@ public class Dashboard {
             String right = "";
             User u = m.getBorrowedBy();
             if (u != null) {
-                String status = overdue.contains(m) ? "OVERDUE" : "OK";
-
+            	String status = "OK";
+            	if (u != null && m.getDueDate() != null && m.getDueDate().isBefore(LocalDate.now())) {
+            	    status = "OVERDUE";
+            	}
                 right = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
                         u.getName(), u.getId(), status);
             } else {
@@ -144,10 +146,32 @@ public class Dashboard {
         System.out.println("=".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
     }
 
+    private List<User> getInactiveUsers() {
+        return userService.getAllUsers().stream()
+                .filter(u -> {
+                    boolean hasBooks = bookService.getAllMedia().stream()
+                            .anyMatch(b -> u.equals(b.getBorrowedBy()));
+                    boolean hasCDs = cdService.getAllMedia().stream()
+                            .anyMatch(cd -> u.equals(cd.getBorrowedBy()));
+                    return !hasBooks && !hasCDs;
+                })
+                .toList();
+    }
+    
+    private void showInactiveUsers() {
+        List<User> inactiveUsers = getInactiveUsers();
 
-
-
-
+        if (inactiveUsers.isEmpty()) {
+            System.out.println(" No inactive users!");
+        } else {
+            System.out.println("-----  INACTIVE USERS -----");
+            for (User u : inactiveUsers) {
+                System.out.println("Name: " + u.getName() + " | ID: " + u.getId() +
+                                   " | Fine: " + u.getFineBalance() + " NIS");
+            }
+        }
+        pause();
+    }
 
     private String padRight(String text, int width) {
         if (text.length() >= width) return text.substring(0, width);
@@ -162,68 +186,66 @@ public class Dashboard {
     }
 
     private void addBookOrCD() {
-        System.out.print("📦 Type (book/cd): ");
+        System.out.print(" Type (book/cd): ");
         String type = sc.nextLine().trim().toLowerCase();
 
-        System.out.print("📖 Title: ");
+        System.out.print(" Title: ");
         String title = sc.nextLine();
 
-        System.out.print("✍ Author/Artist: ");
+        System.out.print(" Author/Artist: ");
         String author = sc.nextLine();
 
-        System.out.print("🆔 ID/ISBN: ");
+        System.out.print(" ID/ISBN: ");
         String id = sc.nextLine();
 
         try {
             if (type.equals("book")) {
                 Book b = new Book(title, author, id);
                 bookService.addMedia(b);
-                System.out.println(ConsoleColors.GREEN + "✅ Added Book: " + b.getTitle() + ConsoleColors.RESET);
+                System.out.println(ConsoleColors.GREEN + " Added Book: " + b.getTitle() + ConsoleColors.RESET);
 
             } else if (type.equals("cd")) {
                 CD c = new CD(title, author, id);
                 cdService.addMedia(c);
-                System.out.println(ConsoleColors.GREEN + "✅ Added CD: " + c.getTitle() + ConsoleColors.RESET);
+                System.out.println(ConsoleColors.GREEN + " Added CD: " + c.getTitle() + ConsoleColors.RESET);
 
             } else {
-                System.out.println(ConsoleColors.RED + "❌ Unknown type!" + ConsoleColors.RESET);
+                System.out.println(ConsoleColors.RED + " Unknown type!" + ConsoleColors.RESET);
             }
 
         } catch (Exception ex) {
-            System.out.println(ConsoleColors.RED + "⚠️ " + ex.getMessage() + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " " + ex.getMessage() + ConsoleColors.RESET);
         }
 
         pause();
     }
 
     private void searchBookOrCD() {
-        System.out.print("🔍 Query: ");
+        System.out.print(" Query: ");
         String q = sc.nextLine();
-
         List<Book> books = bookService.search(q);
         List<CD> cds = cdService.search(q);
 
         if (books.isEmpty() && cds.isEmpty()) {
-            System.out.println(ConsoleColors.RED + "❌ No media found!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " No media found!" + ConsoleColors.RESET);
 
         } else {
             books.forEach(b -> System.out.println(
-                    "📘 Book: " + b.getTitle() +
-                    " | ✍ " + b.getAuthor() +
-                    " | 🆔 ISBN: " + b.getIsbn() +
+                    " Book: " + b.getTitle() +
+                    " |  " + b.getAuthor() +
+                    " |  ISBN: " + b.getIsbn() +
                     " | " + (b.isAvailable()
-                            ? ConsoleColors.GREEN + "✅ Available"
-                            : ConsoleColors.RED + "❌ Borrowed")
+                            ? ConsoleColors.GREEN + " Available"
+                            : ConsoleColors.RED + " Borrowed")
                             + ConsoleColors.RESET
             ));
-
             cds.forEach(c -> System.out.println(
-                    "💿 CD: " + c.getTitle() +
-                    " | 🎤 " + c.getArtist() +
-                    " | 🆔 ID: " + c.getId() +
+                    " CD: " + c.getTitle() +
+                    " |  " + c.getArtist() +
+                    " |  ID: " + c.getId() +
                     " | " + (c.isAvailable()
-                            ? ConsoleColors.GREEN + "✅ Available"
-                            : ConsoleColors.RED + "❌ Borrowed")
+                            ? ConsoleColors.GREEN + " Available"
+                            : ConsoleColors.RED + " Borrowed")
                             + ConsoleColors.RESET
             ));
         }
@@ -233,25 +255,28 @@ public class Dashboard {
 
 
     private void borrowMedia() {
-        System.out.print("👤 User Name: ");
+        System.out.print(" User Name: ");
         String name = sc.nextLine();
 
-        System.out.print("🆔 User ID: ");
+        System.out.print(" User ID: ");
         String id = sc.nextLine();
+        
+        System.out.print(" User Email: ");
+        String email = sc.nextLine();
 
         User user = userService.getAllUsers().stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()
                 .orElseGet(() -> {
-                    User newUser = new User(name, id);
+                    User newUser = new User(name, id,email);
                     userService.addUser(newUser);
                     return newUser;
                 });
 
-        System.out.print("📦 Type (book/cd): ");
+        System.out.print(" Type (book/cd): ");
         String type = sc.nextLine().trim().toLowerCase();
 
-        System.out.print("📌 ID/ISBN: ");
+        System.out.print(" ID/ISBN: ");
         String mediaId = sc.nextLine();
 
         try {
@@ -261,17 +286,17 @@ public class Dashboard {
             else if (type.equals("cd"))
                 m = cdService.borrowMedia(user, mediaId);
             else
-                throw new IllegalArgumentException("❌ Unknown media type");
+                throw new IllegalArgumentException(" Unknown media type");
 
             System.out.println(
-                    ConsoleColors.GREEN + "✅ " + user.getName() +
+                    ConsoleColors.GREEN + " " + user.getName() +
                     " borrowed: " + m.getTitle() +
-                    " | 📅 Due: " + m.getDueDate() +
+                    " |  Due: " + m.getDueDate() +
                     ConsoleColors.RESET
             );
 
         } catch (Exception ex) {
-            System.out.println(ConsoleColors.RED + "❌ " + ex.getMessage() + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " " + ex.getMessage() + ConsoleColors.RESET);
         }
 
         pause();
@@ -282,10 +307,10 @@ public class Dashboard {
         List<Media> overdue = getAllOverdueMedia();
 
         if (overdue.isEmpty()) {
-            System.out.println(ConsoleColors.GREEN + "✅ No overdue media!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.GREEN + " No overdue media!" + ConsoleColors.RESET);
 
         } else {
-            System.out.println(ConsoleColors.RED + "⏰ ----- OVERDUE MEDIA ----- ⏰" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " ----- OVERDUE MEDIA ----- " + ConsoleColors.RESET);
 
             for (Media m : overdue) {
                 User u = m.getBorrowedBy();
@@ -298,10 +323,10 @@ public class Dashboard {
 
                 System.out.println(
                         mediaIcon + " Media: " + m.getTitle() +
-                        " | 👤 User: " + u.getName() +
-                        " | 🆔 ID: " + u.getId() +
-                        " | 📅 Due: " + m.getDueDate() +
-                        " | 💰 Fine: " + ConsoleColors.YELLOW + fine + " NIS" + ConsoleColors.RESET
+                        " |  User: " + u.getName() +
+                        " |  ID: " + u.getId() +
+                        " |  Due: " + m.getDueDate() +
+                        " |  Fine: " + ConsoleColors.YELLOW + fine + " NIS" + ConsoleColors.RESET
                 );
             }
         }
@@ -314,7 +339,7 @@ public class Dashboard {
         List<Media> overdue = getAllOverdueMedia();
 
         if (overdue.isEmpty()) {
-            System.out.println(ConsoleColors.GREEN + "✅ No overdue media!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.GREEN + " No overdue media!" + ConsoleColors.RESET);
             pause();
             return;
         }
@@ -327,11 +352,10 @@ public class Dashboard {
 
             System.out.println(
                     ConsoleColors.RED +
-                    "📢 Reminder Sent -> 👤 User: " + u.getName() +
-                    " | 🆔 ID: " + u.getId() +
+                    " Reminder Sent ->  User: " + u.getName() +
+                    " | ID: " + u.getId() +
                     ConsoleColors.RESET
             );
-
             if (m instanceof Book)
                 bookService.sendReminders(List.of(u), "book");
             else if (m instanceof CD)
@@ -339,15 +363,15 @@ public class Dashboard {
 
             notified.add(u);
         }
-
         pause();
     }
 
+
     private void addLibrarian() {
-        System.out.print("👤 Username: ");
+        System.out.print(" Username: ");
         String username = sc.nextLine().trim();
 
-        System.out.print("🔑 Password: ");
+        System.out.print(" Password: ");
         String password = sc.nextLine().trim();
 
         File file = new File("./data/librarians.txt");
@@ -359,20 +383,18 @@ public class Dashboard {
                 bw.write(username + "," + password);
                 bw.newLine();
             }
-
-            System.out.println(ConsoleColors.GREEN + "✅ Librarian added successfully!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.GREEN + " Librarian added successfully!" + ConsoleColors.RESET);
 
         } catch (Exception ex) {
             System.out.println(
-                    ConsoleColors.RED + "❌ Failed to add librarian: " + ex.getMessage() + ConsoleColors.RESET
+                    ConsoleColors.RED + " Failed to add librarian: " + ex.getMessage() + ConsoleColors.RESET
             );
         }
-
         pause();
     }
 
     private void unregisterUser() {
-        System.out.print("🗑️ User ID to unregister: ");
+        System.out.print(" User ID to unregister: ");
         String id = sc.nextLine();
 
         User user = userService.getAllUsers().stream()
@@ -381,18 +403,16 @@ public class Dashboard {
                 .orElse(null);
 
         if (user == null) {
-            System.out.println(ConsoleColors.RED + "❌ User not found!" + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " User not found!" + ConsoleColors.RESET);
             pause();
             return;
         }
-
-        // Check if the user has active loans
         boolean hasLoans = bookService.hasActiveLoans(user) || cdService.hasActiveLoans(user);
 
         if (hasLoans) {
             System.out.println(
                     ConsoleColors.RED +
-                    "⛔ Cannot unregister user: they have borrowed media!" +
+                    " Cannot unregister user: they have borrowed media!" +
                     ConsoleColors.RESET
             );
             pause();
@@ -411,9 +431,8 @@ public class Dashboard {
             }
 
         } catch (Exception ex) {
-            System.out.println(ConsoleColors.RED + "❌ " + ex.getMessage() + ConsoleColors.RESET);
+            System.out.println(ConsoleColors.RED + " " + ex.getMessage() + ConsoleColors.RESET);
         }
-
         pause();
     }
 

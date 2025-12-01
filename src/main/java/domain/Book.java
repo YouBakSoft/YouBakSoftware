@@ -23,12 +23,9 @@ public class Book extends Media {
         }
         this.borrowedBy = user;
         this.available = false;
-        this.dueDate = LocalDate.now().plusDays(14); // books = 14 days
+        this.dueDate = LocalDate.now().plusDays(28); 
     }
 
-
-
-    // Getters
     public String getAuthor() { return author; }
     public String getIsbn() { return isbn; }
 }

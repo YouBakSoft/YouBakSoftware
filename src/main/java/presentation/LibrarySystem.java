@@ -13,27 +13,22 @@ public class LibrarySystem {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
-        // Services
         UserService userService = new UserService();
         BookService bookService = new BookService();
         CDService cdService = new CDService();
-
-        // Fine strategies
         bookService.setFineStrategy(new BookFineStrategy());
         cdService.setFineStrategy(new CDFineStrategy());
-
+        bookService.setUserService(userService);
+        cdService.setUserService(userService);
         LogIn loginHandler = new LogIn(userService);
 
         while (true) {
             printHeader("YOUBAK LIBRARY SYSTEM");
-
-            // Menu options
             String[] options = {
-                    "👑 Admin Login",
-                    "👤 User Login",
-                    "📚 Librarian Login",
-                    "🚪 Exit"
+                    " Admin Login",
+                    " User Login",
+                    " Librarian Login",
+                    " Exit"
             };
 
             printCenteredMenu(options);
@@ -59,7 +54,7 @@ public class LibrarySystem {
                 case "2" -> {
                     Librarian lib = loginHandler.libLogin(bookService, cdService);
                     if (lib != null) {
-                        LibrarianInterface li = new LibrarianInterface(lib, userService);
+                        LibrarianInterface li = new LibrarianInterface(lib, userService, bookService, cdService);
                         li.showMenu();
                     }
                 }
@@ -72,22 +67,15 @@ public class LibrarySystem {
         }
     }
 
-    // ================== HEADER ==================
     private static void printHeader(String title) {
         System.out.println("=".repeat(TOTAL_WIDTH));
         int padding = (TOTAL_WIDTH - title.length()) / 2;
         System.out.println(" ".repeat(Math.max(padding, 0)) + ConsoleColors.YELLOW + title + ConsoleColors.RESET);
         System.out.println("-".repeat(TOTAL_WIDTH));
     }
-
-    // ================== CENTERED MENU ==================
     private static void printCenteredMenu(String[] options) {
         int totalWidth = TOTAL_WIDTH;
-
-        // Join options into a single line with spacing
         String menuLine = String.join("    ", options);
-
-        // Calculate left padding to center the whole menu
         int padding = (totalWidth - menuLine.length()) / 2;
         if (padding < 0) padding = 0;
 

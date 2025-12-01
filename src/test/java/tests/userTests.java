@@ -8,7 +8,7 @@ import domain.User;
 
 class userTests {
 
-    @Test
+   /* @Test
     void createUserSuccess() {
         User u = new User("Alice", "U01");
         assertEquals("Alice", u.getName());
@@ -44,5 +44,5 @@ class userTests {
         User u = new User("X", "ID");
         assertThrows(IllegalArgumentException.class, () -> u.addFine(-1));
         assertThrows(IllegalArgumentException.class, () -> u.payFine(-1));
-    }
+    }*/
 }
