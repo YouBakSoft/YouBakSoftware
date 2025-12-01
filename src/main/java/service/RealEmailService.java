@@ -17,7 +17,7 @@ public class RealEmailService implements EmailService {
     public void sendEmail(String to, String message) {
         if (to == null || to.isBlank()) {
             System.out.println("Skipping email: recipient is null or empty.");
-            return;  // prevent any NullPointerException
+            return;  
         }
 
         try {
