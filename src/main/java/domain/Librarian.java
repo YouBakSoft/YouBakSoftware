@@ -16,6 +16,7 @@ public class Librarian extends Staff {
 
     private BookService bookService;
     private CDService cdService;
+    private LocalDate lastFineDate = null;
 
     public Librarian(String userName, String password, BookService bookService, CDService cdService) {
         super(userName, password);
@@ -32,31 +33,28 @@ public class Librarian extends Staff {
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
                 if (parts.length >= 2 && parts[0].equals(username) && parts[1].equals(password)) {
-                    return; // Login successful
+                    return; 
                 }
             }
         }
-
-        throw new IllegalArgumentException("Invalid credentials!"); // If no match found
+        throw new IllegalArgumentException("Invalid credentials!");
     }
 
 
-    // ===================== OVERDUE CHECKS =====================
     public void checkOverdueAndIssueFines(UserService userService) {
-        System.out.println(ConsoleColors.GREEN + "Checking overdue media..." + ConsoleColors.RESET);
-
-        // Process overdue books
+        LocalDate today = LocalDate.now();
+        if (lastFineDate != null && lastFineDate.equals(today)) {
+            System.out.println(ConsoleColors.YELLOW + "Fines have already been applied today." + ConsoleColors.RESET);
+            return; 
+        }
         List<Book> overdueBooks = bookService.getOverdueMedia();
         applyFines(overdueBooks, userService);
-
-        // Process overdue CDs
         List<CD> overdueCDs = cdService.getOverdueMedia();
         applyFines(overdueCDs, userService);
-
-        System.out.println(ConsoleColors.GREEN + "Overdue check complete." + ConsoleColors.RESET);
+        lastFineDate = today;
     }
 
-    // Generic method to apply fines using the service
+    
     private <T extends Media> void applyFines(List<T> mediaList, UserService userService) {
         for (T m : mediaList) {
             User borrower = m.getBorrowedBy();
@@ -65,16 +63,12 @@ public class Librarian extends Staff {
             long overdueDays = java.time.temporal.ChronoUnit.DAYS.between(m.getDueDate(), LocalDate.now());
             if (overdueDays > 0) {
                 int fine = 0;
-
-                // Use proper service to calculate fine
                 if (m instanceof Book) {
                     fine = bookService.calculateFine((Book) m);
                 } else if (m instanceof CD) {
                     fine = cdService.calculateFine((CD) m);
                 }
-
                 userService.applyFine(borrower, fine);
-
                 System.out.println(ConsoleColors.RED + "Fine issued to " + borrower.getName() +
                         " (" + borrower.getId() + "): " + fine + " NIS" +
                         " | Overdue by " + overdueDays + " days | " + m.getTitle() + ConsoleColors.RESET);

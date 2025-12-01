@@ -1,4 +1,4 @@
-Wael;10;80.0
-Cat;88;30.0
-Waleed;3;160.0
-Salem;5;50.0
+Ameer;10;0.0
+Saeed;12;0.0
+Jamal;13;0.0
+Wasfi;14;0.0

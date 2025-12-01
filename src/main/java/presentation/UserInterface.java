@@ -1,6 +1,5 @@
 package presentation;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -19,6 +18,9 @@ import service.UserService;
 
 public class UserInterface {
 
+    private static final int LEFT_WIDTH = 45;
+    private static final int RIGHT_WIDTH = 70;
+
     private BookService bookService;
     private CDService cdService;
     private UserService userService;
@@ -32,8 +34,8 @@ public class UserInterface {
         this.userService = userService;
 
         // Setup fine strategies
-        bookService.setFineStrategy(new BookFineStrategy()); // 10 NIS per overdue day
-        cdService.setFineStrategy(new CDFineStrategy());     // 20 NIS per overdue day
+        bookService.setFineStrategy(new BookFineStrategy());
+        cdService.setFineStrategy(new CDFineStrategy());
 
         // Setup email notifications
         EmailNotifier notifier = new EmailNotifier(new RealEmailService());
@@ -43,11 +45,78 @@ public class UserInterface {
 
     public void showMenu() {
         while (true) {
-            ConsoleUtils.printHeader("USER MENU");
-            String[] options = {"Borrow Media", "My Overdue Media", "Pay Fine", "Logout"};
-            ConsoleUtils.printMenu(options);
+            int totalWidth = LEFT_WIDTH + RIGHT_WIDTH;
 
-            System.out.print(ConsoleColors.YELLOW + "Choose: " + ConsoleColors.RESET);
+            // ================= HEADER =================
+            System.out.println("=".repeat(totalWidth));
+            String title = "YouBak Library";
+            int padding = (totalWidth - title.length()) / 2;
+            System.out.println(" ".repeat(Math.max(padding, 0)) + ConsoleColors.CYAN + title + ConsoleColors.RESET);
+            System.out.println("-".repeat(totalWidth));
+
+            // ================= MENU =================
+            String[] menu = {
+                    "📚 [0] Borrow Media",
+                    "⏰ [1] My Overdue Media",
+                    "💰 [2] Pay Fine",
+                    "🚪 [3] Logout"
+            };
+
+            StringBuilder menuLine = new StringBuilder();
+            int lineLength = 0;
+            for (String option : menu) {
+                if (lineLength + option.length() + 4 > totalWidth) {
+                    System.out.println(menuLine);
+                    menuLine = new StringBuilder();
+                    lineLength = 0;
+                }
+                menuLine.append(option).append("    ");
+                lineLength += option.length() + 4;
+            }
+            if (menuLine.length() > 0) System.out.println(menuLine);
+
+            // ================= FINE BALANCE =================
+            System.out.println("=".repeat(totalWidth));
+            System.out.println("💰 Your Fine Balance: " + user.getFineBalance() + " NIS");
+            System.out.println("=".repeat(totalWidth));
+
+            // ================= MEDIA LIST =================
+            System.out.printf("|%-20s |%-10s |%-8s |%-10s |%n",
+                    "TITLE", "ID", "TYPE", "AVAILABLE");
+            System.out.println("-".repeat(totalWidth));
+
+            List<Media> allMedia = new ArrayList<>();
+            allMedia.addAll(bookService.getAllMedia());
+            allMedia.addAll(cdService.getAllMedia());
+
+            for (Media m : allMedia) {
+                String available = m.isAvailable() ? "Yes" : "No";
+                String type;
+                String id;
+
+                if (m instanceof Book b) {
+                    type = "Book";
+                    id = b.getIsbn();
+                } else if (m instanceof CD cd) {
+                    type = "CD";
+                    id = cd.getId();
+                } else {
+                    type = "Unknown";
+                    id = "-";
+                }
+
+                System.out.printf("|%-20s |%-10s |%-8s |%-10s |%n",
+                        m.getTitle(),
+                        id,
+                        type,
+                        available);
+            }
+
+
+            System.out.println("=".repeat(totalWidth));
+
+            // ================= USER CHOICE =================
+            System.out.print("Choose: ");
             String choice = sc.nextLine();
 
             switch (choice) {
@@ -55,7 +124,7 @@ public class UserInterface {
                 case "1" -> showOverdue();
                 case "2" -> payFine();
                 case "3" -> { return; }
-                default -> System.out.println(ConsoleColors.RED + "Invalid choice!" + ConsoleColors.RESET);
+                default -> System.out.println("Invalid choice!");
             }
         }
     }
@@ -71,28 +140,29 @@ public class UserInterface {
         try {
             if ("0".equals(typeChoice)) {
                 if (!bookService.canUserBorrow(user, new ArrayList<>(bookService.getOverdueMedia()))) {
-                    System.out.println(ConsoleColors.RED + "Cannot borrow: overdue books or unpaid fines!" + ConsoleColors.RESET);
+                    System.out.println("Cannot borrow: overdue books or unpaid fines!");
                     return;
                 }
                 Book b = bookService.borrowMedia(user, id);
-                System.out.println(ConsoleColors.GREEN + "You borrowed Book: " + b.getTitle() +
-                        " | Due: " + b.getDueDate() + ConsoleColors.RESET);
+                System.out.println("You borrowed Book: " + b.getTitle() +
+                        " | Due: " + b.getDueDate());
 
             } else if ("1".equals(typeChoice)) {
                 if (!cdService.canUserBorrow(user, new ArrayList<>(cdService.getOverdueMedia()))) {
-                    System.out.println(ConsoleColors.RED + "Cannot borrow: overdue CDs or unpaid fines!" + ConsoleColors.RESET);
+                    System.out.println("Cannot borrow: overdue CDs or unpaid fines!");
                     return;
                 }
                 CD cd = cdService.borrowMedia(user, id);
-                System.out.println(ConsoleColors.GREEN + "You borrowed CD: " + cd.getTitle() +
-                        " | Due: " + cd.getDueDate() + ConsoleColors.RESET);
+                System.out.println("You borrowed CD: " + cd.getTitle() +
+                        " | Due: " + cd.getDueDate());
 
             } else {
-                System.out.println(ConsoleColors.RED + "Invalid media type!" + ConsoleColors.RESET);
+                System.out.println("Invalid media type!");
             }
         } catch (Exception ex) {
-            System.out.println(ConsoleColors.RED + ex.getMessage() + ConsoleColors.RESET);
+            System.out.println(ex.getMessage());
         }
+        pause();
     }
 
     private void showOverdue() {
@@ -101,18 +171,18 @@ public class UserInterface {
         allOverdue.addAll(cdService.getOverdueMedia());
 
         if (allOverdue.isEmpty()) {
-            System.out.println(ConsoleColors.GREEN + "No overdue media!" + ConsoleColors.RESET);
+            System.out.println("No overdue media!");
+            pause();
             return;
         }
 
-        System.out.println(ConsoleColors.RED + "----- OVERDUE MEDIA -----" + ConsoleColors.RESET);
-
+        System.out.println("----- OVERDUE MEDIA -----");
         for (Media m : allOverdue) {
             int fine = 0;
             if (m instanceof Book b) {
-                fine = bookService.calculateFine(b);  // Use BookService + BookFineStrategy
+                fine = bookService.calculateFine(b);
             } else if (m instanceof CD cd) {
-                fine = cdService.calculateFine(cd);  // Use CDService + CDFineStrategy
+                fine = cdService.calculateFine(cd);
             }
 
             User borrower = m.getBorrowedBy();
@@ -125,15 +195,13 @@ public class UserInterface {
         pause();
     }
 
-
-
     // ====================== PAY FINE ======================
     private void payFine() {
         System.out.print("Amount: ");
 
         try {
             double amount = Double.parseDouble(sc.nextLine());
-            userService.payFine(user, amount, bookService, cdService);  
+            userService.payFine(user, amount, bookService, cdService);
 
             // Refresh user from file
             user = userService.getAllUsers().stream()
@@ -141,22 +209,20 @@ public class UserInterface {
                     .findFirst()
                     .orElse(user);
 
-            System.out.println(ConsoleColors.GREEN +
-                    "Paid " + amount + " NIS. Remaining: " + user.getFineBalance() +
-                    ConsoleColors.RESET);
+            System.out.println("Paid " + amount + " NIS. Remaining: " + user.getFineBalance());
 
             if (user.getFineBalance() == 0) {
-                System.out.println(ConsoleColors.GREEN +
-                        "All your overdue media have been returned automatically!" +
-                        ConsoleColors.RESET);
+                System.out.println("All your overdue media have been returned automatically!");
             }
 
         } catch (Exception ex) {
-            System.out.println(ConsoleColors.RED + "Invalid amount!" + ConsoleColors.RESET);
+            System.out.println("Invalid amount!");
         }
+        pause();
     }
+
     private void pause() {
-        System.out.print(ConsoleColors.YELLOW + "Press Enter to continue..." + ConsoleColors.RESET);
+        System.out.print("Press Enter to continue...");
         sc.nextLine();
     }
 }
