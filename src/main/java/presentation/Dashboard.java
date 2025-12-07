@@ -8,6 +8,24 @@ import java.io.FileWriter;
 import java.util.*;
 import java.time.LocalDate;
 
+/**
+ * The {@code Dashboard} class provides a console-based admin interface
+ * for managing books, CDs, and users in the library system.
+ * It allows the admin to add, search, borrow media, view overdue items,
+ * send reminders, manage librarians, and unregister users.
+ * 
+ * <p>Example usage:
+ * <pre><code>
+ * Admin admin = new Admin("admin", "password");
+ * Dashboard dashboard = new Dashboard(admin, bookService, cdService, userService);
+ * dashboard.showMenu();
+ * </code></pre>
+ * 
+ * @see BookService
+ * @see CDService
+ * @see UserService
+ */
+
 public class Dashboard {
 
     private BookService bookService;
@@ -18,6 +36,16 @@ public class Dashboard {
 
     private final int LEFT_WIDTH = 60;
     private final int RIGHT_WIDTH = 50;
+    
+    /**
+     * Creates a new Dashboard instance for the logged-in admin
+     * and sets up the services and observers for books and CDs.
+     * 
+     * @param loggedInAdmin the currently logged-in admin
+     * @param bookService the book service used for book operations
+     * @param cdService the CD service used for CD operations
+     * @param userService the user service used for user operations
+     */
 
     public Dashboard(Admin loggedInAdmin, BookService bookService, CDService cdService, UserService userService) {
         this.admin = loggedInAdmin;
@@ -31,6 +59,11 @@ public class Dashboard {
         cdService.setFineStrategy(new CDFineStrategy());
         cdService.addObserver(new EmailNotifier(new RealEmailService()));
     }
+    
+    /**
+     * Displays the main admin menu and handles user input for
+     * different library operations.
+     */
 
     public void showMenu() {
         while (true) {

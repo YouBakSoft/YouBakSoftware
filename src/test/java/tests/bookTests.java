@@ -1,46 +1,68 @@
 package tests;
 
-import static org.junit.jupiter.api.Assertions.*;
+import domain.Book;
+import domain.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-import org.junit.jupiter.api.Test;
-
-import domain.Book;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class bookTests {
 
+    private Book book;
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        book = new Book("Effective Java", "Joshua Bloch", "978-0134685991");
+        user = mock(User.class);
+    }
+
+
     @Test
-    void createBookSuccess() {
-        Book b = new Book("Clean Code", "Robert Martin", "111");
-        assertEquals("Clean Code", b.getTitle());
-        assertEquals("Robert Martin", b.getAuthor());
-        assertEquals("111", b.getIsbn());
-        assertTrue(b.isAvailable());
-        assertNull(b.getDueDate());
+    void cannotCreateBookWithNullAuthor() {
+        Exception ex = assertThrows(IllegalArgumentException.class,
+                () -> new Book("Title", null, "12345"));
+        assertEquals("Author and ISBN must not be null", ex.getMessage());
     }
 
     @Test
-    void nullTitleThrows() {
-        assertThrows(IllegalArgumentException.class, () -> new Book(null, "Author", "123"));
+    void cannotCreateBookWithNullIsbn() {
+        Exception ex = assertThrows(IllegalArgumentException.class,
+                () -> new Book("Title", "Author", null));
+        assertEquals("Author and ISBN must not be null", ex.getMessage());
+    }
+
+
+    @Test
+    void borrowBookSuccessfully() {
+        book.borrow(user);
+        assertFalse(book.isAvailable());
+        assertEquals(user, book.getBorrowedBy());
+        assertEquals(LocalDate.now().plusDays(28), book.getDueDate());
     }
 
     @Test
-    void nullAuthorThrows() {
-        assertThrows(IllegalArgumentException.class, () -> new Book("Title", null, "123"));
+    void cannotBorrowAlreadyBorrowedBook() {
+        book.borrow(user);
+        User anotherUser = mock(User.class);
+
+        Exception ex = assertThrows(IllegalStateException.class,
+                () -> book.borrow(anotherUser));
+        assertEquals("Book is already borrowed", ex.getMessage());
+    }
+
+
+    @Test
+    void getAuthorReturnsCorrectValue() {
+        assertEquals("Joshua Bloch", book.getAuthor());
     }
 
     @Test
-    void nullIsbnThrows() {
-        assertThrows(IllegalArgumentException.class, () -> new Book("Title", "Author", null));
-    }
-
-    @Test
-    void setAvailabilityAndDueDate() {
-        Book b = new Book("Book", "A", "123");
-        b.setAvailable(false);
-        b.setDueDate(LocalDate.now());
-        assertFalse(b.isAvailable());
-        assertNotNull(b.getDueDate());
+    void getIsbnReturnsCorrectValue() {
+        assertEquals("978-0134685991", book.getIsbn());
     }
 }

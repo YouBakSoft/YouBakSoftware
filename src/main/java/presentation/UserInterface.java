@@ -16,6 +16,24 @@ import service.EmailNotifier;
 import service.RealEmailService;
 import service.UserService;
 
+/**
+ * The {@code UserInterface} class provides a console-based interface for library users.
+ * Users can borrow media, view overdue media, and pay fines.
+ * 
+ * <p>Example usage:
+ * <pre><code>
+ * User user = userService.getUserById("123");
+ * UserInterface ui = new UserInterface(user, bookService, cdService, userService);
+ * ui.showMenu();
+ * </code></pre>
+ * 
+ * @see User
+ * @see BookService
+ * @see CDService
+ * @see UserService
+ * @see BookFineStrategy
+ * @see CDFineStrategy
+ */
 public class UserInterface {
 
     private static final int LEFT_WIDTH = 45;
@@ -27,6 +45,14 @@ public class UserInterface {
     private Scanner sc = new Scanner(System.in);
     private User user;
 
+    /**
+     * Constructs a {@code UserInterface} for the specified user and services.
+     * 
+     * @param user the library user
+     * @param bookService the service for managing books
+     * @param cdService the service for managing CDs
+     * @param userService the service for managing users
+     */
     public UserInterface(User user, BookService bookService, CDService cdService, UserService userService) {
         this.user = user;
         this.bookService = bookService;

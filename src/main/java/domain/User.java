@@ -5,6 +5,17 @@ import java.util.Objects;
 /**
  * Represents a user of the library system.
  * Users can borrow media, have fines, and are identified by a unique ID.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * User user = new User("Alice", "U123", "alice@example.com");
+ * double balance = user.getFineBalance();
+ * user.addFine(10.0);
+ * user.payFine(5.0);
+ * boolean canBorrow = user.canBorrow();
+ * </code></pre>
+ *
+ * @since 1.0
  */
 public class User {
 
@@ -28,6 +39,7 @@ public class User {
      * @param id the user's unique ID
      * @param email the user's email address
      * @throws IllegalArgumentException if name, ID, or email is null
+     * @since 1.0
      */
     public User(String name, String id, String email) {
         if (name == null || id == null || email == null) {
@@ -43,6 +55,7 @@ public class User {
      * Returns the name of the user.
      *
      * @return the user's name
+     * @since 1.0
      */
     public String getName() {
         return name;
@@ -52,6 +65,7 @@ public class User {
      * Returns the unique ID of the user.
      *
      * @return the user's ID
+     * @since 1.0
      */
     public String getId() {
         return id;
@@ -61,6 +75,7 @@ public class User {
      * Returns the current fine balance of the user.
      *
      * @return the fine balance
+     * @since 1.0
      */
     public double getFineBalance() {
         return fineBalance;
@@ -70,6 +85,7 @@ public class User {
      * Sets the fine balance of the user.
      *
      * @param fineBalance the new fine balance
+     * @since 1.0
      */
     public void setFineBalance(double fineBalance) {
         this.fineBalance = fineBalance;
@@ -80,6 +96,7 @@ public class User {
      *
      * @param amount the fine amount to add
      * @throws IllegalArgumentException if the amount is not positive
+     * @since 1.0
      */
     public void addFine(double amount) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
@@ -91,6 +108,7 @@ public class User {
      *
      * @param amount the amount to pay
      * @throws IllegalArgumentException if the amount is not positive
+     * @since 1.0
      */
     public void payFine(double amount) {
         if (amount <= 0) throw new IllegalArgumentException("Amount must be positive");
@@ -105,6 +123,7 @@ public class User {
      * Checks if the user can borrow media (i.e., has no unpaid fines).
      *
      * @return true if the fine balance is 0, false otherwise
+     * @since 1.0
      */
     public boolean canBorrow() {
         return fineBalance == 0;
@@ -114,6 +133,7 @@ public class User {
      * Returns the email of the user.
      *
      * @return the user's email
+     * @since 1.0
      */
     public String getEmail() {
         return email;
@@ -123,6 +143,7 @@ public class User {
      * Sets the user's email.
      *
      * @param email the new email address
+     * @since 1.0
      */
     public void setEmail(String email) {
         this.email = email;
@@ -134,6 +155,7 @@ public class User {
      *
      * @param o the object to compare
      * @return true if the other object is a User with the same ID
+     * @since 1.0
      */
     @Override
     public boolean equals(Object o) {
@@ -146,6 +168,7 @@ public class User {
      * Returns the hash code of the user, based on the ID.
      *
      * @return the hash code
+     * @since 1.0
      */
     @Override
     public int hashCode() {

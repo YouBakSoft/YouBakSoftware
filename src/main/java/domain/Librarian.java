@@ -14,9 +14,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Represents a Librarian in the library system.
- * A Librarian is a type of {@link Staff} who can manage borrowed media,
- * check overdue items, and issue fines to users.
+ * Represents a Librarian in the library.
+ * A Librarian is a type of {@link Staff} who can manage borrowed books and CDs,
+ * check for overdue items, and issue fines to users.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * Librarian librarian = new Librarian("lib1", "password123", bookService, cdService);
+ * librarian.checkOverdueAndIssueFines(userService);
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see Staff
+ * @see BookService
+ * @see CDService
+ * @see UserService
  */
 public class Librarian extends Staff {
 
@@ -26,17 +38,17 @@ public class Librarian extends Staff {
     /** Service for managing CDs */
     private CDService cdService;
 
-    /** Tracks the last date fines were applied to prevent multiple fines in a single day */
+    /** Last date fines were applied, to prevent multiple fines in a single day */
     private LocalDate lastFineDate = null;
 
     /**
-     * Constructs a new Librarian with the specified username, password,
-     * and services for managing books and CDs.
+     * Creates a new Librarian with a username, password, and media services.
      *
-     * @param userName the username of the librarian
-     * @param password the password of the librarian
-     * @param bookService the service used for book management
-     * @param cdService the service used for CD management
+     * @param userName the librarian's username
+     * @param password the librarian's password
+     * @param bookService service for managing books
+     * @param cdService service for managing CDs
+     * @since 1.0
      */
     public Librarian(String userName, String password, BookService bookService, CDService cdService) {
         super(userName, password);
@@ -45,12 +57,13 @@ public class Librarian extends Staff {
     }
 
     /**
-     * Validates librarian login credentials by checking against the "data/librarians.txt" file.
+     * Checks the librarian's credentials against the "data/librarians.txt" file.
      *
-     * @param username the librarian's username
-     * @param password the librarian's password
-     * @throws IOException if an error occurs reading the file
-     * @throws IllegalArgumentException if the file does not exist or credentials are invalid
+     * @param username librarian username
+     * @param password librarian password
+     * @throws IOException if the file can't be read
+     * @throws IllegalArgumentException if credentials are invalid or file is missing
+     * @since 1.0
      */
     public static void loginThrow(String username, String password) throws IOException {
         File file = new File("./data/librarians.txt"); 
@@ -69,10 +82,11 @@ public class Librarian extends Staff {
     }
 
     /**
-     * Checks for overdue books and CDs and issues fines to users if necessary.
+     * Checks for overdue books and CDs and applies fines if needed.
      * Ensures fines are applied only once per day.
      *
-     * @param userService the service used to apply fines to users
+     * @param userService service to apply fines to users
+     * @since 1.0
      */
     public void checkOverdueAndIssueFines(UserService userService) {
         LocalDate today = LocalDate.now();
@@ -80,23 +94,20 @@ public class Librarian extends Staff {
             System.out.println(ConsoleColors.YELLOW + "Fines have already been applied today." + ConsoleColors.RESET);
             return; 
         }
-        List<Book> overdueBooks = bookService.getOverdueMedia();
-        applyFines(userService);
-        List<CD> overdueCDs = cdService.getOverdueMedia();
         applyFines(userService);
         lastFineDate = today;
     }
 
     /**
-     * Applies fines to overdue books and CDs, updates the media files, 
-     * and prints fine information to the console.
+     * Applies fines to overdue books and CDs, updates the media files,
+     * and prints fine info to the console.
      *
-     * @param userService the service used to apply fines to users
+     * @param userService service to apply fines
+     * @since 1.0
      */
     private void applyFines(UserService userService) {
         // Apply fines to books
         List<Book> overdueBooks = bookService.getOverdueMedia();
-        List<CD> overdueCDs = cdService.getOverdueMedia();
         boolean booksUpdated = false;
 
         for (Book b : overdueBooks) {
@@ -119,7 +130,9 @@ public class Librarian extends Staff {
         if (booksUpdated) bookService.writeToFile(overdueBooks);
 
         // Apply fines to CDs
+        List<CD> overdueCDs = cdService.getOverdueMedia();
         boolean cdsUpdated = false;
+
         for (CD cd : overdueCDs) {
             User borrower = cd.getBorrowedBy();
             if (borrower == null || cd.getDueDate() == null) continue;
@@ -133,7 +146,6 @@ public class Librarian extends Staff {
                 System.out.println(ConsoleColors.RED + " Fine issued to " + borrower.getName() +
                         " (" + borrower.getId() + "): " + fine + " NIS 💰" +
                         " | Overdue by " + overdueDays + " days | 💿 " + cd.getTitle() + ConsoleColors.RESET);
-
                 cd.setFineApplied(1);
                 cdsUpdated = true;
             }
@@ -142,5 +154,4 @@ public class Librarian extends Staff {
 
         lastFineDate = LocalDate.now();
     }
-
 }

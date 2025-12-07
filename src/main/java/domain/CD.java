@@ -3,24 +3,24 @@ package domain;
 import java.time.LocalDate;
 
 /**
- * Represents a CD in the library system.
- * A CD is a type of {@link Media} that can be borrowed by users.
+ * Represents a CD in the library.
+ * A CD is a type of {@link Media} that users can borrow.
  */
 public class CD extends Media {
 
-    /** The unique identifier of the CD */
+    /** The CD's unique ID */
     private String id;
 
     /** The artist of the CD */
     private String artist;
 
     /**
-     * Constructs a new CD with the specified title, artist, and ID.
+     * Create a new CD with title, artist, and ID.
      *
-     * @param title the title of the CD
-     * @param artist the artist of the CD
-     * @param id the unique identifier of the CD
-     * @throws IllegalArgumentException if the CD ID is null
+     * @param title the CD title
+     * @param artist the artist's name
+     * @param id the CD's unique identifier
+     * @throws IllegalArgumentException if the ID is null
      */
     public CD(String title, String artist, String id) {
         super(title);
@@ -30,9 +30,8 @@ public class CD extends Media {
     }
 
     /**
-     * Borrows the CD for a specified user.
-     * The CD must be available; otherwise, an exception is thrown.
-     * Sets the due date to 7 days from the current date.
+     * Borrow the CD for a user.
+     * Sets the due date to 7 days from today.
      *
      * @param user the user borrowing the CD
      * @throws IllegalStateException if the CD is already borrowed
@@ -48,18 +47,18 @@ public class CD extends Media {
     }
 
     /**
-     * Returns the unique identifier of the CD.
+     * Get the CD's unique ID.
      *
-     * @return the CD's ID
+     * @return CD ID
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Returns the artist of the CD.
+     * Get the CD's artist.
      *
-     * @return the CD's artist
+     * @return artist name
      */
     public String getArtist() {
         return artist;

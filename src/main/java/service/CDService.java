@@ -9,10 +9,35 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service class to manage {@link CD} objects.
+ * Extends {@link MultiMediaService} and provides functionality for adding, borrowing,
+ * searching, and persisting CDs to a file.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * CDService cdService = new CDService();
+ * CD cd = new CD("Album Title", "Artist Name", "CD123");
+ * cdService.addMedia(cd);
+ * User user = new User("Alice", "U001", "alice@example.com");
+ * cdService.borrowMedia(user, "CD123");
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see CD
+ * @see MultiMediaService
+ */
 public class CDService extends MultiMediaService<CD> {
 
+    /** Path to the file where CDs are stored */
     private final String FILE_PATH = "data/cds.txt";
 
+    /**
+     * Constructs a CDService and ensures the data file exists.
+     * If the file or directories do not exist, they will be created.
+     *
+     * @since 1.0
+     */
     public CDService() {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
@@ -24,10 +49,27 @@ public class CDService extends MultiMediaService<CD> {
             }
         }
     }
+
+    /**
+     * Returns a list of all CDs in the system.
+     *
+     * @return List of {@link CD}
+     * @since 1.0
+     */
     public List<CD> getAllMedia() {
         return readFromFile();
     }
 
+    /**
+     * Adds a new CD to the system.
+     * Validates non-null/non-empty ID.
+     * Throws an exception if a CD with the same ID already exists.
+     *
+     * @param cd The {@link CD} to add
+     * @return The added CD
+     * @throws IllegalArgumentException If validation fails or ID already exists
+     * @since 1.0
+     */
     @Override
     public CD addMedia(CD cd) {
         if (cd.getId() == null || cd.getId().isEmpty()) 
@@ -43,6 +85,17 @@ public class CDService extends MultiMediaService<CD> {
         return cd;
     }
 
+    /**
+     * Borrows a CD for a given user by ID.
+     * Checks user eligibility (overdue CDs or unpaid fines).
+     *
+     * @param user The {@link User} borrowing the CD
+     * @param id   The ID of the CD to borrow
+     * @return The borrowed {@link CD}
+     * @throws IllegalArgumentException If the CD or user is invalid
+     * @throws IllegalStateException    If the CD is already borrowed or user cannot borrow
+     * @since 1.0
+     */
     @Override
     public CD borrowMedia(User user, String id) {
         if (user == null) throw new IllegalArgumentException("User cannot be null");
@@ -62,7 +115,14 @@ public class CDService extends MultiMediaService<CD> {
 
         throw new IllegalArgumentException("CD not found");
     }
-    
+
+    /**
+     * Searches CDs by title, artist, or ID (case-insensitive).
+     *
+     * @param query The search string
+     * @return List of {@link CD} that match the query
+     * @since 1.0
+     */
     @Override
     public List<CD> search(String query) {
         if (query == null) return new ArrayList<>();
@@ -74,13 +134,19 @@ public class CDService extends MultiMediaService<CD> {
                         cd.getTitle().toLowerCase().contains(q) ||
                         cd.getArtist().toLowerCase().contains(q) ||
                         cd.getId().toLowerCase().contains(q)
-                        
                 )
                 .toList();
     }
 
-	@Override
-	protected List<CD> readFromFile() {
+    /**
+     * Reads CDs from the storage file.
+     *
+     * @return List of {@link CD} read from the file
+     * @throws RuntimeException If file cannot be read
+     * @since 1.0
+     */
+    @Override
+    protected List<CD> readFromFile() {
         List<CD> cds = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
@@ -118,34 +184,40 @@ public class CDService extends MultiMediaService<CD> {
             throw new RuntimeException("Error reading CDs file", e);
         }
         return cds;
-	}
+    }
 
-	@Override
-	public void writeToFile(List<CD> list) {
-	    try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
-	        for (CD cd : list) {
-	            String userId = (cd.getBorrowedBy() != null)
-	                    ? cd.getBorrowedBy().getId()
-	                    : "null";
+    /**
+     * Writes a list of CDs to the storage file.
+     *
+     * @param list List of {@link CD} to write
+     * @throws RuntimeException If file cannot be written
+     * @since 1.0
+     */
+    @Override
+    public void writeToFile(List<CD> list) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (CD cd : list) {
+                String userId = (cd.getBorrowedBy() != null)
+                        ? cd.getBorrowedBy().getId()
+                        : "null";
 
-	            String due = (cd.getDueDate() != null)
-	                    ? cd.getDueDate().toString()
-	                    : "null";
+                String due = (cd.getDueDate() != null)
+                        ? cd.getDueDate().toString()
+                        : "null";
 
-	            bw.write(String.join(";",
-	                    cd.getTitle(),
-	                    cd.getArtist(),
-	                    cd.getId(),
-	                    Boolean.toString(cd.isAvailable()),
-	                    due,
-	                    userId,
-	                    Integer.toString(cd.getFineApplied()  
-	            )));
-	            bw.newLine();
-	        }
-	    } catch (IOException e) {
-	        throw new RuntimeException("Error writing CDs file", e);
-	    }
-	}
-
+                bw.write(String.join(";",
+                        cd.getTitle(),
+                        cd.getArtist(),
+                        cd.getId(),
+                        Boolean.toString(cd.isAvailable()),
+                        due,
+                        userId,
+                        Integer.toString(cd.getFineApplied())
+                ));
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing CDs file", e);
+        }
+    }
 }

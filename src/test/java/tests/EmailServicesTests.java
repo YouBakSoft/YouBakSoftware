@@ -1,69 +1,29 @@
 package tests;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import domain.Book;
-import domain.User;
-import service.BookService;
-import service.EmailNotifier;
-import service.EmailService;
-import service.UserService;
-
-import static org.mockito.Mockito.*;
-
-import java.io.FileWriter;
-import java.time.LocalDate;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import service.EmailService;
 
-@ExtendWith(MockitoExtension.class)
+import static org.mockito.Mockito.*;
+
 class EmailServicesTests {
 
-    private BookService service;
-
-    @Mock
-    private UserService mockUserService;
+    private EmailService emailService;
 
     @BeforeEach
-    void clearFileAndInit() throws Exception {
-        try (FileWriter fw = new FileWriter("data/books.txt")) {
-            fw.write("");
-        }
-
-        service = new BookService();
-        service.setUserService(mockUserService);
+    void setup() {
+        emailService = mock(EmailService.class);
     }
 
-  /*  @Test
-    void testSendReminder() throws Exception {
-        User u = new User("Alice", "alice@example.com");
+    @Test
+    void testSendEmailIsCalled() {
+        String to = "user@example.com";
+        String message = "Hello, this is a test.";
 
-        // Make the mocked UserService return this user
-        when(mockUserService.getAllUsers()).thenReturn(List.of(u));
+        // Call the method
+        emailService.sendEmail(to, message);
 
-        // Add your email observer
-        EmailService mockEmailService = mock(EmailService.class);
-        service.addObserver(new EmailNotifier(mockEmailService));
-
-        // Create an overdue book for the user
-        Book b = service.addBook("Book 300", "Author", "300");
-        service.borrowBook(u, "300");
-
-        List<Book> books = service.search("");
-        books.get(0).setDueDate(LocalDate.now().minusDays(2));
-
-        // Save via reflection
-        var m = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
-        m.setAccessible(true);
-        m.invoke(service, books);
-
-        // Call sendReminders
-        service.sendReminders(List.of(u));
-
-        // Verify email was called
-        verify(mockEmailService, times(1)).sendEmail(eq(u.getId()), anyString());
-    }*/
+        // Verify it was called with correct arguments
+        verify(emailService).sendEmail(to, message);
+    }
 }

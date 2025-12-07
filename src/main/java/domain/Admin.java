@@ -6,29 +6,48 @@ import service.BookService;
 import service.UserService;
 
 /**
- * Represents an Admin user who has privileges to manage other users and perform administrative tasks.
- * Admin extends {@link Staff} and provides methods for logging in, logging out, and unregistering users.
+ * Represents an Admin user.
+ * Admins can manage users and perform other administrative tasks.
+ * Extends {@link Staff}.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * Admin admin = new Admin("admin1", "password123");
+ * admin.login("password123");
+ * User user = userService.getUser("user1");
+ * boolean removed = admin.unregisterUser(user, userService, bookService);
+ * admin.logout();
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see Staff
+ * @see UserService
+ * @see BookService
  */
 public class Admin extends Staff {
 
     /**
-     * Constructs a new Admin with the specified username and password.
+     * Creates a new Admin with a username and password.
      *
-     * @param userName the username of the admin
-     * @param password the password of the admin
+     * @param userName the admin's username
+     * @param password the admin's password
+     * @since 1.0
      */
     public Admin(String userName, String password) {
         super(userName, password); 
     }
+    
+    
 
     /**
-     * Validates the provided admin credentials against the "data/admins.txt" file.
-     * Throws an exception if the credentials are invalid or the file is missing.
+     * Checks if the given username and password match an admin in "data/admins.txt".
+     * Throws an exception if credentials are invalid or the file is missing.
      *
      * @param username the admin username
      * @param password the admin password
-     * @throws IOException if there is an error reading the admin file
-     * @throws IllegalArgumentException if the file is missing or credentials are invalid
+     * @throws IOException if the file cannot be read
+     * @throws IllegalArgumentException if the file is missing or credentials are wrong
+     * @since 1.0
      */
     public static void loginThrow(String username, String password) throws IOException {
         File file = new File("data/admins.txt");
@@ -48,11 +67,12 @@ public class Admin extends Staff {
     }
 
     /**
-     * Logs in the admin using the provided password.
+     * Logs in this admin using their password.
      *
      * @param password the admin password
-     * @throws IOException if there is an error reading the admin file
+     * @throws IOException if reading the file fails
      * @throws IllegalArgumentException if credentials are invalid
+     * @since 1.0
      */
     public void login(String password) throws IOException {
         Admin.loginThrow(this.getUserName(), password);
@@ -62,7 +82,8 @@ public class Admin extends Staff {
     /**
      * Logs out the admin.
      *
-     * @throws IllegalStateException if the admin is not currently logged in
+     * @throws IllegalStateException if the admin is not logged in
+     * @since 1.0
      */
     public void logout() {
         if (!this.isLoggedIn()) throw new IllegalStateException("Admin is not logged in!");
@@ -71,15 +92,17 @@ public class Admin extends Staff {
     
     /**
      * Unregisters a user from the system.
-     * This operation can only be performed if the admin is logged in, the user has no outstanding fines,
-     * and the user has no active borrowed books.
+     * Admin must be logged in, the user must have no unpaid fines,
+     * and must have returned all borrowed books.
      *
-     * @param user the user to be unregistered
-     * @param userService the user service to perform the unregistration
-     * @param bookService the book service to check for active loans
-     * @return true if the user was successfully unregistered, false otherwise
-     * @throws IllegalStateException if the admin is not logged in, the user has unpaid fines,
-     *                               or the user still has borrowed books
+     * @param user the user to remove
+     * @param userService service to manage users
+     * @param bookService service to check active loans
+     * @return true if the user was successfully unregistered
+     * @throws IllegalStateException if admin is not logged in, user has fines, or user has borrowed books
+     * @since 1.0
+     * @see UserService#unregisterUser(User)
+     * @see BookService#hasActiveLoans(User)
      */
     public boolean unregisterUser(User user, UserService userService, BookService bookService) {
 
