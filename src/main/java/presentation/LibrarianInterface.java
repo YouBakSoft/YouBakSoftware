@@ -1,9 +1,8 @@
 package presentation;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
 
+import java.util.*;
 import domain.*;
 import service.*;
 /**
@@ -31,8 +30,9 @@ public class LibrarianInterface {
     private BookService bookService;
     private CDService cdService;
 
-    private final int LEFT_WIDTH = 60;  
-    private final int RIGHT_WIDTH = 50; 
+    private final int leftWidth = 60;
+    private final int rightWidth = 50;
+
     
     /**
      * Constructs a LibrarianInterface for the specified librarian and services.
@@ -71,7 +71,7 @@ public class LibrarianInterface {
     }
 
     private void printHeader() {
-        int totalWidth = LEFT_WIDTH + RIGHT_WIDTH;
+        int totalWidth = leftWidth + rightWidth;
         System.out.println("=".repeat(totalWidth));
         String title = " LIBRARIAN MENU ";
         int padding = (totalWidth - title.length()) / 2;
