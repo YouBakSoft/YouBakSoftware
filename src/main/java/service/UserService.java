@@ -67,7 +67,7 @@ public class UserService {
                 users.add(u);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error reading users file: " + e.getMessage());
         }
         return users;
     }
@@ -84,8 +84,9 @@ public class UserService {
                 bw.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error saving users: " + e.getMessage());
         }
+
     }
 
     /**

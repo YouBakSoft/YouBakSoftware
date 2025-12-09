@@ -45,11 +45,12 @@ public class ConsoleUtils {
             }
             System.out.flush();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); 
+            Thread.currentThread().interrupt();
         } catch (IOException e) {
-            e.printStackTrace(); 
+            System.err.println("Error clearing console: " + e.getMessage());
         }
     }
+
 
 
     /**

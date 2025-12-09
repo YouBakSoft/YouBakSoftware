@@ -44,8 +44,8 @@ public class RealEmailService implements EmailService {
     @Override
     public void sendEmail(String to, String message) {
         if (to == null || to.isBlank()) {
-            System.out.println("Skipping email: recipient is null or empty.");
-            return;  
+            System.err.println("Skipping email: recipient is null or empty.");
+            return;
         }
 
         try {
@@ -69,10 +69,12 @@ public class RealEmailService implements EmailService {
             msg.setText(message);
 
             Transport.send(msg);
+
             System.out.println("Email sent successfully to " + to);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed to send email to " + to + ": " + e.getMessage());
         }
     }
+
 }
