@@ -20,7 +20,7 @@ class emailNotifierTests {
         emailService = mock(EmailService.class); 
         notifier = new EmailNotifier(emailService);
         userWithEmail = new User("Alice", "U001", "alice@example.com");
-        userWithoutEmail = new User("BoB", "U002", "placeholder@example.com");
+        userWithoutEmail = new User("Bob", "U002", "placeholder@example.com");
         userWithoutEmail.setEmail(null);
     }
 
