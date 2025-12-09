@@ -1,27 +1,39 @@
 package domain;
 
 /**
- * Represents a generic staff member in the library system.
- * This class provides basic properties and behaviors for all staff types,
- * such as Admins and Librarians.
+ * Represents a staff member in the library.
+ * This is a base class for all staff types like Admins and Librarians.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * Staff staff = new Staff("johnDoe", "password123");
+ * String username = staff.getUserName();
+ * staff.setLoggedIn(true);
+ * boolean loggedIn = staff.isLoggedIn();
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see Admin
+ * @see Librarian
  */
 public class Staff {
 
-    /** The username of the staff member */
+    /** Staff member's username */
     private String userName;
 
-    /** The password of the staff member */
+    /** Staff member's password */
     private String password;
 
-    /** Indicates whether the staff member is currently logged in */
+    /** True if the staff member is currently logged in */
     private boolean loggedIn = false;
 
     /**
-     * Constructs a new Staff member with the specified username and password.
-     * Initially, the staff member is not logged in.
+     * Create a new Staff member with username and password.
+     * Initially not logged in.
      *
-     * @param userName the username of the staff member
-     * @param password the password of the staff member
+     * @param userName the staff username
+     * @param password the staff password
+     * @since 1.0
      */
     public Staff(String userName, String password) {
         this.userName = userName;
@@ -30,54 +42,60 @@ public class Staff {
     }
 
     /**
-     * Returns the username of the staff member.
+     * Get the username.
      *
-     * @return the username
+     * @return staff username
+     * @since 1.0
      */
     public String getUserName() {
         return userName;
     }
 
     /**
-     * Sets the username of the staff member.
+     * Set the username.
      *
-     * @param userName the new username
+     * @param userName staff username
+     * @since 1.0
      */
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
     /**
-     * Returns the password of the staff member.
+     * Get the password.
      *
-     * @return the password
+     * @return staff password
+     * @since 1.0
      */
     public String getPassword() {
         return password;
     }
 
     /**
-     * Sets the password of the staff member.
+     * Set the password.
      *
-     * @param password the new password
+     * @param password staff password
+     * @since 1.0
      */
     public void setPassword(String password) {
         this.password = password;
     }
 
     /**
-     * Checks whether the staff member is currently logged in.
+     * Check if the staff member is logged in.
      *
      * @return true if logged in, false otherwise
+     * @since 1.0
      */
     public boolean isLoggedIn() {
         return loggedIn;
     }
 
     /**
-     * Sets the login status of the staff member.
+     * Set login status of the staff member.
      *
-     * @param loggedIn true if the staff member is logged in, false otherwise
+     * @param loggedIn true to mark as logged in, false otherwise
+     * @since 1.0
      */
     public void setLoggedIn(boolean loggedIn) {
         this.loggedIn = loggedIn;

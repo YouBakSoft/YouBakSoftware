@@ -6,6 +6,22 @@ import java.util.stream.Collectors;
 
 import domain.*;
 import service.*;
+/**
+ * The {@code LibrarianInterface} class provides a console-based interface
+ * for librarians to manage overdue media and issue fines in the library system.
+ * 
+ * <p>Example usage:
+ * <pre><code>
+ * Librarian librarian = new Librarian("libUser");
+ * LibrarianInterface libInterface = new LibrarianInterface(librarian, userService, bookService, cdService);
+ * libInterface.showMenu();
+ * </code></pre>
+ * 
+ * @see Librarian
+ * @see UserService
+ * @see BookService
+ * @see CDService
+ */
 
 public class LibrarianInterface {
 
@@ -17,6 +33,15 @@ public class LibrarianInterface {
 
     private final int LEFT_WIDTH = 60;  
     private final int RIGHT_WIDTH = 50; 
+    
+    /**
+     * Constructs a LibrarianInterface for the specified librarian and services.
+     *
+     * @param librarian the librarian using this interface
+     * @param userService the user service for managing users
+     * @param bookService the book service for managing books
+     * @param cdService the CD service for managing CDs
+     */
 
     public LibrarianInterface(Librarian librarian, UserService userService, BookService bookService, CDService cdService) {
         this.librarian = librarian;
@@ -121,7 +146,13 @@ public class LibrarianInterface {
         System.out.println("=".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
     }
 
-
+    /**
+     * Pads the given text to the right with spaces to the specified width.
+     * 
+     * @param text the text to pad
+     * @param width the total width of the returned string
+     * @return the padded string
+     */
     private String padRight(String text, int width) {
         if (text.length() >= width) return text.substring(0, width);
         return text + " ".repeat(width - text.length());

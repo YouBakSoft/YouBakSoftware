@@ -3,24 +3,38 @@ package domain;
 import java.time.LocalDate;
 
 /**
- * Represents a Book in the library system.
- * A Book is a type of {@link Media} that can be borrowed by users.
+ * Represents a Book in the library.
+ * A Book is a type of {@link Media} that users can borrow.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * Book book = new Book("Effective Java", "Joshua Bloch", "978-0134685991");
+ * User user = userService.getUser("user1");
+ * book.borrow(user);
+ * String author = book.getAuthor();
+ * String isbn = book.getIsbn();
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see Media
+ * @see User
  */
 public class Book extends Media {
 
-    /** The author of the book */
+    /** The book's author */
     private String author;
 
-    /** The International Standard Book Number (ISBN) */
+    /** The book's ISBN */
     private String isbn;
 
     /**
-     * Constructs a new Book with the specified title, author, and ISBN.
+     * Create a new Book with title, author, and ISBN.
      *
-     * @param title the title of the book
-     * @param author the author of the book
+     * @param title the book title
+     * @param author the author's name
      * @param isbn the ISBN of the book
      * @throws IllegalArgumentException if author or ISBN is null
+     * @since 1.0
      */
     public Book(String title, String author, String isbn) {
         super(title);
@@ -32,12 +46,12 @@ public class Book extends Media {
     }
 
     /**
-     * Borrows the book for a specified user.
-     * The book must be available; otherwise, an exception is thrown.
-     * Sets the due date to 28 days from the current date.
+     * Borrow the book for a user.
+     * Sets the due date to 28 days from today.
      *
      * @param user the user borrowing the book
      * @throws IllegalStateException if the book is already borrowed
+     * @since 1.0
      */
     @Override
     public void borrow(User user) {
@@ -50,18 +64,20 @@ public class Book extends Media {
     }
 
     /**
-     * Returns the author of the book.
+     * Get the book's author.
      *
-     * @return the author's name
+     * @return author name
+     * @since 1.0
      */
     public String getAuthor() {
         return author;
     }
 
     /**
-     * Returns the ISBN of the book.
+     * Get the book's ISBN.
      *
-     * @return the book's ISBN
+     * @return ISBN
+     * @since 1.0
      */
     public String getIsbn() {
         return isbn;

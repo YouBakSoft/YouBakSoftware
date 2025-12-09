@@ -1,104 +1,126 @@
 package tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.io.FileWriter;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
 import domain.Book;
 import domain.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import service.BookService;
-import service.EmailNotifier;
-import service.EmailService;
-import service.UserService;
-import service.BookFineStrategy;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+import static org.mockito.Mockito.*;
+
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class bookServiceTest {
 
-    private BookService service;
-    private UserService mockUserService;
-/*
+    private BookService bookService;
+    private User user;
+
     @BeforeEach
     void setup() {
-        mockUserService = mock(UserService.class);
-        service = new BookService() {
-            private List<Book> testBooks = new ArrayList<>();
-            @Override
-			public List<Book> readBooksFromFile() {
-                return testBooks;
-            }
-            @Override
-			public void writeBooksToFile(List<Book> books) {
-                testBooks = books;
-            }
-        };
-        when(mockUserService.getAllUsers()).thenReturn(List.of(new User("Baker","100")));
-        service.setUserService(mockUserService);
+        bookService = new BookService();
+        user = new User("Alice", "U1", "alice@example.com");
+        bookService.writeToFile(List.of()); // start fresh
     }
 
-
-
     @Test
-    void addBookSuccess() {
-        Book b = service.addBook("Clean Code", "Robert Martin", "111");
-        assertNotNull(b);
-        assertEquals("Clean Code", b.getTitle());
-    }
-    @Test
-    void overdueBookDetectionWithMockedTime() {
-        User u = new User("Baker", "100");
-        when(mockUserService.getAllUsers()).thenReturn(List.of(u));
-        LocalDate borrowDate = LocalDate.of(2025, 11, 30);
-        try (MockedStatic<LocalDate> mockedDate = mockStatic(LocalDate.class)) {
-            mockedDate.when(LocalDate::now).thenReturn(borrowDate);
-
-            Book b = service.addBook("Old Book", "A", "101");
-            service.borrowBook(u, "101");
-        }
-        LocalDate checkDate = LocalDate.of(2025, 12, 30);
-        try (MockedStatic<LocalDate> mockedDate = mockStatic(LocalDate.class)) {
-            mockedDate.when(LocalDate::now).thenReturn(checkDate);
-
-            List<Book> overdue = service.getOverdueBooks();
-
-            assertEquals(1, overdue.size(), "There should be exactly 1 overdue book");
-            assertEquals("101", overdue.get(0).getIsbn(), "The overdue book should have ISBN 101");
-        }
+    void borrowBookSuccessfully() {
+        Book book = new Book("Java 101", "John Doe", "ISBN123");
+        bookService.addMedia(book);
+        Book borrowed = bookService.borrowMedia(user, "ISBN123");
+        assertFalse(borrowed.isAvailable());
+        assertEquals(user, borrowed.getBorrowedBy());
+        assertNotNull(borrowed.getDueDate());
     }
 
-
+    @Test
+    void cannotBorrowAlreadyBorrowedBook() {
+        Book book = new Book("Java 101", "John Doe", "ISBN123");
+        bookService.addMedia(book);
+        bookService.borrowMedia(user, "ISBN123");
+        User user2 = new User("Bob", "U2", "bob@example.com");
+        Exception ex = assertThrows(IllegalStateException.class,
+                () -> bookService.borrowMedia(user2, "ISBN123"));
+        assertEquals("Book already borrowed", ex.getMessage());
+    }
 
     @Test
-    public void testCalculateFineWithStrategy() throws Exception {
+    void cannotBorrowIfUserHasFines() {
+        Book book = new Book("Java 101", "John Doe", "ISBN123");
+        bookService.addMedia(book);
+        user.addFine(10.0);
+        Exception ex = assertThrows(IllegalStateException.class,
+                () -> bookService.borrowMedia(user, "ISBN123"));
+        assertEquals("Cannot borrow books: overdue media or unpaid fines", ex.getMessage());
+    }
 
-        User u = new User("TestUser", "U01");
-        Book b = service.addBook("Old Book", "Author", "200");
-        service.borrowBook(u, "200");
+    @Test
+    void searchBookByTitleAuthorIsbn() {
+        Book book1 = new Book("Java Basics", "John Doe", "ISBN123");
+        Book book2 = new Book("Python Guide", "Jane Doe", "ISBN456");
+        bookService.addMedia(book1);
+        bookService.addMedia(book2);
+        assertEquals(1, bookService.search("Java").size());
+        assertEquals(1, bookService.search("Jane").size());
+        assertEquals(1, bookService.search("ISBN123").size());
+        assertEquals(0, bookService.search("C++").size());
+    }
 
-        List<Book> allBooks = service.search("");
-        allBooks.get(0).setDueDate(LocalDate.now().minusDays(3));
+    @Test
+    void cannotAddBookWithSameISBN() {
+        Book book1 = new Book("Java Basics", "John Doe", "ISBN123");
+        Book book2 = new Book("Another Book", "Jane Doe", "ISBN123");
+        bookService.addMedia(book1);
+        Exception ex = assertThrows(IllegalArgumentException.class,
+                () -> bookService.addMedia(book2));
+        assertEquals("Book with same ISBN already exists", ex.getMessage());
+    }
 
-        var m = BookService.class.getDeclaredMethod("writeBooksToFile", List.class);
-        m.setAccessible(true);
-        m.invoke(service, allBooks);
+    // ---- Additional tests for 100% coverage ----
 
-        service.setFineStrategy(new BookFineStrategy());
+    @Test
+    void addMediaNullFieldsThrows() {
+        Book book = mock(Book.class);
+        when(book.getTitle()).thenReturn(null);
+        when(book.getAuthor()).thenReturn("Author");
+        when(book.getIsbn()).thenReturn("ISBN1");
 
-        when(mockUserService.getAllUsers()).thenReturn(List.of(u));
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> bookService.addMedia(book));
+        assertEquals("Title, author, and ISBN cannot be null", ex.getMessage());
+    }
 
-        List<Book> overdueBooks = service.getOverdueBooks();
-        for (Book book : overdueBooks) {
-            int fine = service.calculateFineForBook(book);
-            System.out.println(book.getTitle() + " - Fine: " + fine + " NIS");  
+    @Test
+    void borrowMediaNullUserThrows() {
+        Book book = new Book("Title", "Author", "ISBN1");
+        bookService.addMedia(book);
+        Exception ex = assertThrows(IllegalArgumentException.class,
+                () -> bookService.borrowMedia(null, "ISBN1"));
+        assertEquals("User cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void readFromFileInvalidDateHandled() throws IOException {
+        // simulate invalid date in file
+        File f = new File("data/books.txt");
+        f.getParentFile().mkdirs();
+        try (var bw = new java.io.BufferedWriter(new java.io.FileWriter(f))) {
+            bw.write("Title;Author;ISBN;true;invalid-date;null;0");
+            bw.newLine();
         }
+        // just call readFromFile to trigger warning branch
+        List<Book> books = bookService.getAllMedia();
+        assertEquals(1, books.size());
+        assertNull(books.get(0).getDueDate());
+    }
 
-        assertTrue(overdueBooks.size() > 0);
-    }*/
+    @Test
+    void writeToFileHandlesUserNull() {
+        Book book = new Book("Title", "Author", "ISBN1");
+        book.setBorrowedBy(null); // ensure branch where user is null
+        assertDoesNotThrow(() -> bookService.writeToFile(List.of(book)));
+    }
 }

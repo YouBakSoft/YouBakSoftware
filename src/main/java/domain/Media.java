@@ -6,36 +6,53 @@ import java.time.temporal.ChronoUnit;
 import service.FineStrategy;
 
 /**
- * Represents a general media item in the library system.
- * This class is abstract and provides common properties and behaviors
- * for all media types such as books, CDs, etc.
+ * Represents a general media item in the library.
+ * This is an abstract class for all types of media like books and CDs.
+ *
+ * <p>Example usage:
+ * <pre><code>
+ * Book book = new Book("Effective Java", "Joshua Bloch", "978-0134685991");
+ * CD cd = new CD("Abbey Road", "The Beatles", "CD12345");
+ * User user = userService.getUser("user1");
+ * book.borrow(user);
+ * cd.borrow(user);
+ * int bookFine = book.calculateFine();
+ * int cdFine = cd.calculateFine();
+ * </code></pre>
+ *
+ * @since 1.0
+ * @see Book
+ * @see CD
+ * @see User
+ * @see FineStrategy
  */
 public abstract class Media {
 
-    /** The title of the media */
+    /** Media title */
     protected String title;
 
-    /** Indicates whether the media is currently available for borrowing */
+    /** True if media is available for borrowing */
     protected boolean available;
 
-    /** The due date for returning the media */
+    /** Due date for returning the media */
     protected LocalDate dueDate;
 
-    /** The user who borrowed the media, or null if not borrowed */
+    /** The user who borrowed the media, null if not borrowed */
     protected User borrowedBy;
 
-    /** Flag indicating if a fine has been applied (0 = no fine, 1 = fine applied) */
+    /** Fine status: 0 = no fine, 1 = fine applied */
     protected int fineApplied;
 
     /** Strategy for calculating fines */
     protected FineStrategy fineStrategy;
 
     /**
-     * Constructs a new Media item with the given title.
-     * Initially, the media is available, not borrowed, and has no due date.
+     * Create a new Media item with a title.
+     * Initially available, not borrowed, no due date.
      *
-     * @param title the title of the media
-     * @throws IllegalArgumentException if the title is null
+     * @param title the media title
+     * @throws IllegalArgumentException if title is null
+     * @since 1.0
      */
     public Media(String title) {
         if (title == null) {
@@ -49,35 +66,39 @@ public abstract class Media {
     }
 
     /**
-     * Borrows this media item for a specific user.
-     * Must be implemented by subclasses to define borrowing rules (e.g., due date, duration).
+     * Borrow the media for a user.
+     * Subclasses define rules (e.g., due date, duration).
      *
-     * @param user the user borrowing the media
+     * @param user the borrower
+     * @since 1.0
      */
     public abstract void borrow(User user);
 
     /**
-     * Checks whether the media is overdue.
+     * Check if the media is overdue.
      *
-     * @return true if the current date is after the due date, false otherwise
+     * @return true if past due date, false otherwise
+     * @since 1.0
      */
     public boolean isOverdue() {
         return dueDate != null && LocalDate.now().isAfter(dueDate);
     }
 
     /**
-     * Sets the strategy used for calculating fines for this media.
+     * Set the fine calculation strategy.
      *
-     * @param strategy the fine calculation strategy
+     * @param strategy the fine strategy
+     * @since 1.0
      */
     public void setFineStrategy(FineStrategy strategy) {
         this.fineStrategy = strategy;
     }
 
     /**
-     * Calculates the fine for this media based on the overdue days and fine strategy.
+     * Calculate the fine based on overdue days and strategy.
      *
-     * @return the fine amount in integer units (e.g., NIS)
+     * @return fine amount, 0 if not overdue or no strategy
+     * @since 1.0
      */
     public int calculateFine() {
         if (dueDate == null || available || fineStrategy == null) return 0;
@@ -91,84 +112,92 @@ public abstract class Media {
     // ----- Getters and Setters -----
 
     /**
-     * Returns the title of the media.
+     * Get the media title.
      *
-     * @return the media title
+     * @return title of the media
+     * @since 1.0
      */
     public String getTitle() {
         return title; 
     }
 
     /**
-     * Checks if the media is available for borrowing.
+     * Check if media is available.
      *
-     * @return true if available, false otherwise
+     * @return true if available
+     * @since 1.0
      */
     public boolean isAvailable() {
         return available;
     }
 
     /**
-     * Sets the availability of the media.
+     * Set availability of the media.
      *
-     * @param available true if available, false otherwise
+     * @param available true if available, false if borrowed
+     * @since 1.0
      */
     public void setAvailable(boolean available) {
         this.available = available;
     }
 
     /**
-     * Returns the due date for the media.
+     * Get the due date for returning the media.
      *
-     * @return the due date, or null if not borrowed
+     * @return due date, or null if not borrowed
+     * @since 1.0
      */
     public LocalDate getDueDate() {
         return dueDate; 
     }
 
     /**
-     * Sets the due date for the media.
+     * Set the due date for returning the media.
      *
      * @param dueDate the due date
+     * @since 1.0
      */
     public void setDueDate(LocalDate dueDate) { 
         this.dueDate = dueDate; 
     }
 
     /**
-     * Returns the user who borrowed this media.
+     * Get the user who borrowed the media.
      *
-     * @return the borrower, or null if not borrowed
+     * @return borrower, or null if not borrowed
+     * @since 1.0
      */
     public User getBorrowedBy() {
         return borrowedBy;
     }
 
     /**
-     * Sets the user who borrowed this media.
+     * Set the user who borrowed the media.
      *
      * @param borrowedBy the borrower
+     * @since 1.0
      */
     public void setBorrowedBy(User borrowedBy) {
         this.borrowedBy = borrowedBy; 
     }
 
     /**
-     * Returns the fine applied status.
+     * Get the fine applied status.
      *
-     * @return 0 if no fine applied, 1 if fine applied
+     * @return 0 if no fine, 1 if fine applied
+     * @since 1.0
      */
     public int getFineApplied() {
         return fineApplied; 
     }
 
     /**
-     * Sets the fine applied status.
+     * Set the fine applied status.
      *
-     * @param fineApplied 0 for no fine, 1 for fine applied
+     * @param fineApplied 0 if no fine, 1 if fine applied
+     * @since 1.0
      */
     public void setFineApplied(int fineApplied) {
         this.fineApplied = fineApplied;
     }
-
 }

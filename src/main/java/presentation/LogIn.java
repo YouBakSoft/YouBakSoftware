@@ -10,16 +10,48 @@ import service.BookService;
 import service.CDService;
 import service.UserService;
 
+/**
+ * The {@code LogIn} class provides a console-based login interface 
+ * for Admins, Users, and Librarians in the library system.
+ * 
+ * <p>Example usage:
+ * <pre><code>
+ * UserService userService = new UserService();
+ * LogIn login = new LogIn(userService);
+ * Admin admin = login.adminLogin();
+ * User user = login.userLogin();
+ * Librarian librarian = login.libLogin(bookService, cdService);
+ * </code></pre>
+ * 
+ * @see Admin
+ * @see User
+ * @see Librarian
+ * @see UserService
+ * @see BookService
+ * @see CDService
+ */
+
 public class LogIn {
 
     private static final int TOTAL_WIDTH = 120;
     private Scanner sc = new Scanner(System.in);
     private UserService userService;
+    
+    /**
+     * Constructs a {@code LogIn} instance using the provided {@code UserService}.
+     * 
+     * @param userService the user service used to manage user login and registration
+     */
 
     public LogIn(UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * Prompts the console for admin credentials and logs in an Admin.
+     * 
+     * @return the logged-in {@code Admin} object, or {@code null} if login failed
+     */
     public Admin adminLogin() {
         printCenteredHeader("ADMIN LOGIN");
 
@@ -42,6 +74,12 @@ public class LogIn {
         return null;
     }
 
+    /**
+     * Prompts the console for user credentials and logs in a User.
+     * Creates a new user if not already registered.
+     * 
+     * @return the logged-in {@code User} object, or {@code null} if login failed
+     */
     public User userLogin() {
         printCenteredHeader("USER LOGIN");
 
@@ -69,6 +107,13 @@ public class LogIn {
     }
 
 
+    /**
+     * Prompts the console for librarian credentials and logs in a Librarian.
+     * 
+     * @param bookService the {@code BookService} used by the librarian
+     * @param cdService the {@code CDService} used by the librarian
+     * @return the logged-in {@code Librarian} object, or {@code null} if login failed
+     */
     public Librarian libLogin(BookService bookService, CDService cdService) {
         printCenteredHeader("LIBRARIAN LOGIN");
 
