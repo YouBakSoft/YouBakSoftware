@@ -1,5 +1,7 @@
 package presentation;
 
+import java.io.IOException;
+
 /**
  * Utility class for common console operations such as printing headers,
  * clearing the console, padding text, and displaying menus.
@@ -33,13 +35,22 @@ public class ConsoleUtils {
     public static void clearConsole() {
         try {
             final String os = System.getProperty("os.name");
-            if (os.contains("Windows"))
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            else
+            if (os.contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls")
+                    .inheritIO()
+                    .start()
+                    .waitFor();
+            } else {
                 System.out.print("");
+            }
             System.out.flush();
-        } catch (Exception ignored) {}
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); 
+        } catch (IOException e) {
+            e.printStackTrace(); 
+        }
     }
+
 
     /**
      * Pads a string on the right with spaces to achieve the given width.

@@ -43,12 +43,18 @@ public class CDService extends MultiMediaService<CD> {
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
-                file.createNewFile();
+                boolean created = file.createNewFile(); 
+                if (created) {
+                    System.out.println("cds.txt file created successfully.");
+                } else {
+                    System.out.println("cds.txt already exists.");
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Cannot create cds.txt", e);
             }
         }
     }
+
 
     /**
      * Returns a list of all CDs in the system.

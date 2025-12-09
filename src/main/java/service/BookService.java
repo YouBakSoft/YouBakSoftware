@@ -41,12 +41,18 @@ public class BookService extends MultiMediaService<Book> {
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
-                file.createNewFile();
+                boolean created = file.createNewFile();
+                if (created) {
+                    System.out.println("books.txt file created successfully.");
+                } else {
+                    System.out.println("books.txt already exists.");
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Cannot create books.txt", e);
             }
         }
     }
+
 
     /**
      * Returns a list of all books in the system.

@@ -33,12 +33,16 @@ public class UserService {
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
-                file.createNewFile();
+                boolean created = file.createNewFile(); 
+                if (!created) {
+                    System.out.println("users.txt already exists.");
+                }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Cannot create users.txt", e);
             }
         }
     }
+
 
     /**
      * Retrieves all users from the storage file.
