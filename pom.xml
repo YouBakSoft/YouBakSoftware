@@ -18,6 +18,10 @@
     ../app-it/target/site/jacoco-aggregate/jacoco.xml
   </sonar.coverage.jacoco.xmlReportPaths>
    <sonar.organization>youbaksoft</sonar.organization>
+           <sonar.coverage.exclusions>
+            /presentation/,
+            /resources/
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
