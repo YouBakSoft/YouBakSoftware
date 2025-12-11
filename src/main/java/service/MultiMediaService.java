@@ -203,5 +203,5 @@ public abstract class MultiMediaService<T extends Media>
      *
      * @param list list of media to write
      */
-    protected abstract void writeToFile(List<T> list);
+    public abstract void writeToFile(List<T> list);
 }
