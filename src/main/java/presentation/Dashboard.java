@@ -37,6 +37,8 @@ public class Dashboard {
 
     private final int LEFT_WIDTH = 60;
     private final int RIGHT_WIDTH = 50;
+    private static final String SPLIT_FORMAT = "s | %-";
+
     
     /**
      * Creates a new Dashboard instance for the logged-in admin
@@ -142,16 +144,28 @@ public class Dashboard {
         int colTitle = 20, colId = 10, colType = 8, colAvail = 10;
         int colUName = 20, colUID = 10, colStatus = 10;
 
-        String leftHeader = String.format("%-" + colTitle + "s | %-" + colId + "s | %-" + colType + "s | %-" +
-                colAvail + "s", "TITLE", "ID", "TYPE", "AVAILABLE");
+        String leftHeader = String.format(
+                "%-" + colTitle + SPLIT_FORMAT +
+                colId + SPLIT_FORMAT +
+                colType + SPLIT_FORMAT +
+                colAvail + "s",
+                "TITLE", "ID", "TYPE", "AVAILABLE"
+        );
 
-        String rightHeader = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                "USER NAME", "ID", "STATUS");
+        String rightHeader = String.format(
+                "%-" + colUName + SPLIT_FORMAT +
+                colUID + SPLIT_FORMAT +
+                colStatus + "s",
+                "USER NAME", "ID", "STATUS"
+        );
 
-        System.out.println("|" + padRight(leftHeader, colTitle + colId + colType + colAvail + 9) +
-                " || " + padRight(rightHeader, colUName + colUID + colStatus + 6) + "|");
+        System.out.println("|" + padRight(leftHeader,
+                colTitle + colId + colType + colAvail + 9) +
+                " || " + padRight(rightHeader,
+                colUName + colUID + colStatus + 6) + "|");
 
-        System.out.println("-".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
+        System.out.println("-".repeat(
+                colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
 
         for (Media m : allMedia) {
 
@@ -160,37 +174,49 @@ public class Dashboard {
                     ? ((Book) m).getIsbn()
                     : ((CD) m).getId();
 
-            String left = String.format("%-" + colTitle + "s | %-" + colId + "s | %-" + colType + "s | %-" +
+            String left = String.format(
+                    "%-" + colTitle + SPLIT_FORMAT +
+                    colId + SPLIT_FORMAT +
+                    colType + SPLIT_FORMAT +
                     colAvail + "s",
-                    m.getTitle(), id, type, (m.isAvailable() ? "Yes" : "No"));
+                    m.getTitle(), id, type, (m.isAvailable() ? "Yes" : "No")
+            );
 
             User borrower = m.getBorrowedBy();
 
-            // Combined all borrower / status logic → fewer branches
             String right;
             if (borrower != null) {
 
-                String status =
-                        (m.getDueDate() != null && m.getDueDate().isBefore(LocalDate.now()))
-                                ? "OVERDUE"
-                                : "OK";
+                String status = (m.getDueDate() != null &&
+                        m.getDueDate().isBefore(LocalDate.now()))
+                        ? "OVERDUE"
+                        : "OK";
 
-                right = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                        borrower.getName(), borrower.getId(), status);
+                right = String.format(
+                        "%-" + colUName + SPLIT_FORMAT +
+                        colUID + SPLIT_FORMAT +
+                        colStatus + "s",
+                        borrower.getName(), borrower.getId(), status
+                );
 
             } else {
-                // Single branch for empty right section
-                right = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                        "", "", "");
+                right = String.format(
+                        "%-" + colUName + SPLIT_FORMAT +
+                        colUID + SPLIT_FORMAT +
+                        colStatus + "s",
+                        "", "", ""
+                );
             }
 
-            System.out.println("|" + padRight(left, colTitle + colId + colType + colAvail + 9) +
-                    " || " + padRight(right, colUName + colUID + colStatus + 6) + "|");
+            System.out.println("|" + padRight(left,
+                    colTitle + colId + colType + colAvail + 9) +
+                    " || " + padRight(right,
+                    colUName + colUID + colStatus + 6) + "|");
         }
 
-        System.out.println("=".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
+        System.out.println("=".repeat(
+                colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
     }
-
 
     private List<User> getInactiveUsers() {
         return userService.getAllUsers().stream()
