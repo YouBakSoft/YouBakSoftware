@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service class to manage {@link Book} objects.
+ * Service class to manage {@link Book} objects
  * Extends {@link MultiMediaService} and provides functionality for adding, borrowing,
  * searching, and persisting books to a file.
  *
