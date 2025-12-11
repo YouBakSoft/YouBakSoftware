@@ -99,52 +99,76 @@ public class LibrarianInterface {
 
 
     private void printSplitMediaAndUsers() {
-        List<Media> allMedia = new ArrayList<>();
-        allMedia.addAll(bookService.getAllMedia());
-        allMedia.addAll(cdService.getAllMedia());
+        List<Media> allMedia = loadAllMedia();
 
         int colTitle = 20, colId = 10, colType = 8, colAvail = 10;
         int colUName = 20, colUID = 10, colStatus = 10;
 
-        String leftHeader = String.format("%-" + colTitle + "s | %-" + colId + "s | %-" + colType + "s | %-" + colAvail + "s",
-                "TITLE", "ID", "TYPE", "AVAILABLE");
-        String rightHeader = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                "USER NAME", "ID", "STATUS");
-
-        System.out.println("|" + padRight(leftHeader, colTitle + colId + colType + colAvail + 9) + " || " +
-                padRight(rightHeader, colUName + colUID + colStatus + 6) + "|");
-        System.out.println("-".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
+        printHeaders(colTitle, colId, colType, colAvail, colUName, colUID, colStatus);
 
         for (Media m : allMedia) {
-            String type = (m instanceof Book) ? "Book" : "CD";
-            String id = (m instanceof Book) ? ((Book) m).getIsbn() :
-                        (m instanceof CD) ? ((CD) m).getId() : "-";
-            String avail = m.isAvailable() ? "Yes" : "No";
+            String left = buildLeftRow(m, colTitle, colId, colType, colAvail);
+            String right = buildRightRow(m, colUName, colUID, colStatus);
 
-            String left = String.format("%-" + colTitle + "s | %-" + colId + "s | %-" + colType + "s | %-" + colAvail + "s",
-                    m.getTitle(), id, type, avail);
-
-            User u = m.getBorrowedBy();
-            String right;
-            if (u != null) {
-                String status = "OK";
-                if (m.getDueDate() != null && m.getDueDate().isBefore(LocalDate.now())) {
-                    status = "OVERDUE";
-                }
-
-                right = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                        u.getName(), u.getId(), status);
-            } else {
-                right = String.format("%-" + colUName + "s | %-" + colUID + "s | %-" + colStatus + "s",
-                        "", "", "");
-            }
-
-            System.out.println("|" + padRight(left, colTitle + colId + colType + colAvail + 9) + " || " +
-                    padRight(right, colUName + colUID + colStatus + 6) + "|");
+            System.out.println("|" + padRight(left, colTitle + colId + colType + colAvail + 9)
+                    + " || " + padRight(right, colUName + colUID + colStatus + 6) + "|");
         }
 
         System.out.println("=".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
     }
+    private List<Media> loadAllMedia() {
+        List<Media> all = new ArrayList<>();
+        all.addAll(bookService.getAllMedia());
+        all.addAll(cdService.getAllMedia());
+        return all;
+    }
+
+    private void printHeaders(int colTitle, int colId, int colType, int colAvail,
+            int colUName, int colUID, int colStatus) {
+
+			String leftHeader = String.format("%-" + colTitle + "s | %-" + colId + "s | %-" +
+			colType + "s | %-" + colAvail + "s", "TITLE", "ID", "TYPE", "AVAILABLE");
+			
+			String rightHeader = String.format("%-" + colUName + "s | %-" + colUID +
+			"s | %-" + colStatus + "s", "USER NAME", "ID", "STATUS");
+			
+			System.out.println("|" + padRight(leftHeader,
+			colTitle + colId + colType + colAvail + 9) +
+			" || " + padRight(rightHeader,
+			colUName + colUID + colStatus + 6) + "|");
+			
+			System.out.println("-".repeat(colTitle + colId + colType + colAvail + colUName + colUID + colStatus + 17));
+			}
+
+    private String buildLeftRow(Media m, int colTitle, int colId, int colType, int colAvail) {
+        String type = (m instanceof Book) ? "Book" : "CD";
+        String id = (m instanceof Book) ? ((Book)m).getIsbn() : ((CD)m).getId();
+        String avail = m.isAvailable() ? "Yes" : "No";
+
+        return String.format("%-" + colTitle + "s | %-" + colId + "s | %-" +
+                colType + "s | %-" + colAvail + "s",
+                m.getTitle(), id, type, avail);
+    }
+
+    private String buildRightRow(Media m, int colUName, int colUID, int colStatus) {
+        User u = m.getBorrowedBy();
+        if (u == null) {
+            return emptyRight(colUName, colUID, colStatus);
+        }
+
+        String status = (m.getDueDate() != null && m.getDueDate().isBefore(LocalDate.now()))
+                ? "OVERDUE"
+                : "OK";
+
+        return String.format("%-" + colUName + "s | %-" + colUID + "s | %-" +
+                colStatus + "s", u.getName(), u.getId(), status);
+    }
+
+    private String emptyRight(int colUName, int colUID, int colStatus) {
+        return String.format("%-" + colUName + "s | %-" + colUID + "s | %-" +
+                colStatus + "s", "", "", "");
+    }
+
 
     /**
      * Pads the given text to the right with spaces to the specified width.
