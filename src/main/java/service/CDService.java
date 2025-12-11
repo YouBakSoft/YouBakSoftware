@@ -154,42 +154,73 @@ public class CDService extends MultiMediaService<CD> {
     @Override
     protected List<CD> readFromFile() {
         List<CD> cds = new ArrayList<>();
+
         try (BufferedReader br = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
+
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length < 4) continue;
-
-                CD cd = new CD(parts[0].trim(), parts[1].trim(), parts[2].trim());
-                cd.setAvailable(Boolean.parseBoolean(parts[3].trim()));
-
-                if (parts.length >= 5 && !"null".equals(parts[4].trim())) {
-                    try {
-                        cd.setDueDate(LocalDate.parse(parts[4].trim()));
-                    } catch (Exception e) {
-                        System.out.println("Warning: invalid date for CD " + cd.getTitle());
-                    }
+                CD cd = parseCdLine(line);
+                if (cd != null) {
+                    cds.add(cd);
                 }
-
-                if (parts.length >= 6 && userService != null) {
-                    String userId = parts[5].trim();
-                    User u = userService.getAllUsers().stream()
-                            .filter(user -> user.getId().equals(userId))
-                            .findFirst()
-                            .orElse(null);
-                    cd.setBorrowedBy(u);
-                }
-                if (parts.length >= 7) {
-                    cd.setFineApplied(Integer.parseInt(parts[6].trim()));
-                } else {
-                    cd.setFineApplied(0);
-                }
-                cds.add(cd);
             }
         } catch (IOException e) {
             throw new RuntimeException("Error reading CDs file", e);
         }
+
         return cds;
+    }
+    private CD parseCdLine(String line) {
+        String[] parts = line.split(";");
+        if (parts.length < 4) return null;
+
+        CD cd = new CD(
+                parts[0].trim(),
+                parts[1].trim(),
+                parts[2].trim()
+        );
+
+        cd.setAvailable(Boolean.parseBoolean(parts[3].trim()));
+
+        setDueDate(parts, cd);
+        setBorrower(parts, cd);
+        setFine(parts, cd);
+
+        return cd;
+    }
+    private void setDueDate(String[] parts, CD cd) {
+        if (parts.length < 5) return;
+
+        String rawDate = parts[4].trim();
+        if ("null".equals(rawDate)) return;
+
+        try {
+            cd.setDueDate(LocalDate.parse(rawDate));
+        } catch (Exception e) {
+            System.out.println("Warning: invalid date for CD " + cd.getTitle());
+        }
+    }
+
+    private void setBorrower(String[] parts, CD cd) {
+        if (parts.length < 6 || userService == null) return;
+
+        String userId = parts[5].trim();
+
+        User u = userService.getAllUsers()
+                .stream()
+                .filter(user -> user.getId().equals(userId))
+                .findFirst()
+                .orElse(null);
+
+        cd.setBorrowedBy(u);
+    }
+
+    private void setFine(String[] parts, CD cd) {
+        if (parts.length >= 7) {
+            cd.setFineApplied(Integer.parseInt(parts[6].trim()));
+        } else {
+            cd.setFineApplied(0);
+        }
     }
 
     /**
