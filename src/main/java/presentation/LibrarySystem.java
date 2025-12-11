@@ -54,7 +54,8 @@ public class LibrarySystem {
         cdService.setUserService(userService);
         LogIn loginHandler = new LogIn(userService);
 
-        while (true) {
+        boolean running = true; // loop control flag
+        while (running) {
             printHeader("YOUBAK LIBRARY SYSTEM");
             String[] options = {
                     " Admin Login",
@@ -62,12 +63,9 @@ public class LibrarySystem {
                     " Librarian Login",
                     " Exit"
             };
-
             printCenteredMenu(options);
-
             System.out.print(ConsoleColors.YELLOW + "Choose: " + ConsoleColors.RESET);
             String choice = sc.nextLine();
-
             switch (choice) {
                 case "0" -> {
                     Admin admin = loginHandler.adminLogin();
@@ -92,11 +90,12 @@ public class LibrarySystem {
                 }
                 case "3" -> {
                     System.out.println(ConsoleColors.GREEN + "Goodbye!" + ConsoleColors.RESET);
-                    System.exit(0);
+                    running = false; // stop the loop instead of System.exit()
                 }
                 default -> System.out.println(ConsoleColors.RED + "Invalid choice!" + ConsoleColors.RESET);
             }
         }
+
     }
 
     /**
