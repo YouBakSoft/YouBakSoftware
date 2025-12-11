@@ -129,19 +129,19 @@
             </goals>
         </execution>
         <!-- Generate report after tests -->
-        <execution>
-            <id>report</id>
-            <phase>test</phase>
-            <goals>
-                <goal>report</goal>
-            </goals>
-            <configuration>
-                <excludes>
-                    <!-- Exclude all classes in the presentation package -->
-                    <exclude>presentation/*</exclude>
-                </excludes>
-            </configuration>
-        </execution>
+<execution>
+    <id>report</id>
+    <phase>test</phase>
+    <goals>
+        <goal>report</goal>
+    </goals>
+    <configuration>
+        <excludes>
+            <exclude>presentation/**</exclude>   <!-- كل الملفات داخل الباكج -->
+        </excludes>
+    </configuration>
+</execution>
+
     </executions>
 </plugin>
 

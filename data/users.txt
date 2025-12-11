@@ -1,6 +1,0 @@
-Bob;U002;bob@example.com;0.0
-Frank;U006;frank@example.com;120.0
-Charlie;U003;charlie@example.com;0.0
-Ivy;U009;ivy@example.com;0.0
-Alice;U001;alice@example.com;0.0
-Grace;U007;grace@example.com;0.0
