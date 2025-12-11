@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -100,50 +101,86 @@ public class Librarian extends Staff {
     }
 
     /**
-     * Applies fines to overdue books and CDs and prints fine info to the console.
+     * Applies fines for overdue books and CDs
+     * and prints fine info to the console.
      *
      * @param userService service to apply fines
      * @since 1.0
      */
     private void applyFines(UserService userService) {
-        applyFinesForMedia(bookService.getOverdueMedia(), bookService, userService, "📚");
-        applyFinesForMedia(cdService.getOverdueMedia(), cdService, userService, "💿");
+
+        // Apply fines to books
+        List<Book> overdueBooks = bookService.getOverdueMedia();
+        boolean booksUpdated = false;
+
+        for (Book b : overdueBooks) {
+            User borrower = b.getBorrowedBy();
+
+            // Combined conditions → reduces nesting
+            if (borrower == null ||
+                b.getDueDate() == null ||
+                b.getFineApplied() > 0) {
+                continue;
+            }
+
+            long overdueDays = ChronoUnit.DAYS.between(b.getDueDate(), LocalDate.now());
+
+            if (overdueDays > 0) {
+                int fine = bookService.calculateFine(b);
+                userService.applyFine(borrower, fine);
+                ReportFine.generateFineReceipt(borrower, fine, false, b);
+
+                System.out.println(ConsoleColors.RED +
+                        " Fine issued to " + borrower.getName() +
+                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
+                        " | Overdue by " + overdueDays + " days | 📚 " + b.getTitle() +
+                        ConsoleColors.RESET);
+
+                b.setFineApplied(1);
+                booksUpdated = true;
+            }
+        }
+
+        if (booksUpdated) bookService.writeToFile(overdueBooks);
+
+
+
+        // Apply fines to CDs
+        List<CD> overdueCDs = cdService.getOverdueMedia();
+        boolean cdsUpdated = false;
+
+        for (CD cd : overdueCDs) {
+            User borrower = cd.getBorrowedBy();
+
+            // Combined conditions → same improvement
+            if (borrower == null ||
+                cd.getDueDate() == null ||
+                cd.getFineApplied() > 0) {
+                continue;
+            }
+
+            long overdueDays = ChronoUnit.DAYS.between(cd.getDueDate(), LocalDate.now());
+
+            if (overdueDays > 0) {
+                int fine = cdService.calculateFine(cd);
+                userService.applyFine(borrower, fine);
+                ReportFine.generateFineReceipt(borrower, fine, false, cd);
+
+                System.out.println(ConsoleColors.RED +
+                        " Fine issued to " + borrower.getName() +
+                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
+                        " | Overdue by " + overdueDays + " days | 💿 " + cd.getTitle() +
+                        ConsoleColors.RESET);
+
+                cd.setFineApplied(1);
+                cdsUpdated = true;
+            }
+        }
+
+        if (cdsUpdated) cdService.writeToFile(overdueCDs);
+
         lastFineDate = LocalDate.now();
     }
 
-    /**
-     * Helper method to apply fines to a list of media (books or CDs).
-     *
-     * @param overdueList list of overdue media
-     * @param mediaService service used to calculate fine and persist changes
-     * @param userService service used to apply fines to users
-     * @param emoji emoji representing media type for console output
-     * @param <T> type of media (Book or CD)
-     */
-    private <T extends Media> void applyFinesForMedia(List<T> overdueList, MultiMediaService<T> mediaService,
-                                                      UserService userService, String emoji) {
-        boolean updated = false;
-
-        for (T media : overdueList) {
-            User borrower = media.getBorrowedBy();
-            if (borrower == null || media.getDueDate() == null || media.getFineApplied() > 0) continue;
-
-            long overdueDays = java.time.temporal.ChronoUnit.DAYS.between(media.getDueDate(), LocalDate.now());
-            if (overdueDays <= 0) continue;
-
-            int fine = mediaService.calculateFine(media);
-            userService.applyFine(borrower, fine);
-            ReportFine.generateFineReceipt(borrower, fine, false, media);
-
-            System.out.println(ConsoleColors.RED + " Fine issued to " + borrower.getName() +
-                    " (" + borrower.getId() + "): " + fine + " NIS 💰" +
-                    " | Overdue by " + overdueDays + " days | " + emoji + " " + media.getTitle() + ConsoleColors.RESET);
-
-            media.setFineApplied(1);
-            updated = true;
-        }
-
-        if (updated) mediaService.writeToFile(overdueList);
-    }
 
 }
