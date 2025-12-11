@@ -20,7 +20,6 @@
    <sonar.organization>youbaksoft</sonar.organization>
            <sonar.coverage.exclusions>
             /presentation/,
-            /resources/
         </sonar.coverage.exclusions>
     </properties>
 
