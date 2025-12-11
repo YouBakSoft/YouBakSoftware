@@ -2,6 +2,7 @@ package domain;
 
 import service.BookService;
 import service.CDService;
+import service.MediaService;
 import service.MultiMediaService;
 import service.ReportFine;
 import service.UserService;
@@ -109,78 +110,64 @@ public class Librarian extends Staff {
      */
     private void applyFines(UserService userService) {
 
-        // Apply fines to books
-        List<Book> overdueBooks = bookService.getOverdueMedia();
-        boolean booksUpdated = false;
+        applyFinesForMedia(
+                bookService.getOverdueMedia(),
+                bookService,
+                userService,
+                "📚"
+        );
 
-        for (Book b : overdueBooks) {
-            User borrower = b.getBorrowedBy();
-
-            // Combined conditions → reduces nesting
-            if (borrower == null ||
-                b.getDueDate() == null ||
-                b.getFineApplied() > 0) {
-                continue;
-            }
-
-            long overdueDays = ChronoUnit.DAYS.between(b.getDueDate(), LocalDate.now());
-
-            if (overdueDays > 0) {
-                int fine = bookService.calculateFine(b);
-                userService.applyFine(borrower, fine);
-                ReportFine.generateFineReceipt(borrower, fine, false, b);
-
-                System.out.println(ConsoleColors.RED +
-                        " Fine issued to " + borrower.getName() +
-                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
-                        " | Overdue by " + overdueDays + " days | 📚 " + b.getTitle() +
-                        ConsoleColors.RESET);
-
-                b.setFineApplied(1);
-                booksUpdated = true;
-            }
-        }
-
-        if (booksUpdated) bookService.writeToFile(overdueBooks);
-
-
-
-        // Apply fines to CDs
-        List<CD> overdueCDs = cdService.getOverdueMedia();
-        boolean cdsUpdated = false;
-
-        for (CD cd : overdueCDs) {
-            User borrower = cd.getBorrowedBy();
-
-            // Combined conditions → same improvement
-            if (borrower == null ||
-                cd.getDueDate() == null ||
-                cd.getFineApplied() > 0) {
-                continue;
-            }
-
-            long overdueDays = ChronoUnit.DAYS.between(cd.getDueDate(), LocalDate.now());
-
-            if (overdueDays > 0) {
-                int fine = cdService.calculateFine(cd);
-                userService.applyFine(borrower, fine);
-                ReportFine.generateFineReceipt(borrower, fine, false, cd);
-
-                System.out.println(ConsoleColors.RED +
-                        " Fine issued to " + borrower.getName() +
-                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
-                        " | Overdue by " + overdueDays + " days | 💿 " + cd.getTitle() +
-                        ConsoleColors.RESET);
-
-                cd.setFineApplied(1);
-                cdsUpdated = true;
-            }
-        }
-
-        if (cdsUpdated) cdService.writeToFile(overdueCDs);
+        applyFinesForMedia(
+                cdService.getOverdueMedia(),
+                cdService,
+                userService,
+                "💿"
+        );
 
         lastFineDate = LocalDate.now();
     }
+
+    private <T extends Media> boolean applyFinesForMedia(
+            List<T> overdueList,
+            MediaService<T> service,
+            UserService userService,
+            String icon
+    ) {
+        boolean updated = false;
+
+        for (T media : overdueList) {
+            User borrower = media.getBorrowedBy();
+
+            // Combined conditions → fixed bad smell
+            if (borrower == null ||
+                media.getDueDate() == null ||
+                media.getFineApplied() > 0) {
+                continue;
+            }
+
+            long overdueDays = ChronoUnit.DAYS.between(media.getDueDate(), LocalDate.now());
+
+            if (overdueDays > 0) {
+                int fine = service.calculateFine(media);
+                userService.applyFine(borrower, fine);
+
+                ReportFine.generateFineReceipt(borrower, fine, false, media);
+
+                System.out.println(ConsoleColors.RED +
+                        " Fine issued to " + borrower.getName() +
+                        " (" + borrower.getId() + "): " + fine + " NIS 💰" +
+                        " | Overdue by " + overdueDays + " days | " + icon + " " + media.getTitle() +
+                        ConsoleColors.RESET);
+
+                media.setFineApplied(1);
+                updated = true;
+            }
+        }
+
+        if (updated) service.writeToFile(overdueList);
+        return updated;
+    }
+
 
 
 }
