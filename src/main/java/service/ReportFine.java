@@ -1,6 +1,7 @@
 package service;
 
 import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 
@@ -32,47 +33,47 @@ public class ReportFine {
      * @param paid   true if the fine has been paid, false if issued
      * @param media  the media item associated with the fine (optional, can be null)
      */
-    public static void generateFineReceipt(User user, double amount, boolean paid, Media media) {
-        try {
-            String folder = "receipts";
-            File dir = new File(folder);
-            if (!dir.exists()) dir.mkdirs();
+	public static void generateFineReceipt(User user, double amount, boolean paid, Media media) {
+	    try {
+	        String folder = "receipts";
+	        File dir = new File(folder);
+	        if (!dir.exists()) dir.mkdirs();
 
-            String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String type = paid ? "Paid" : "Issued";
-            String safeName = user.getName().replaceAll("\\s+", "_");
-            String fileName = folder + File.separator + type + "_Fine_" + safeName + "_" + timeStamp + ".pdf";
+	        String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+	        String type = paid ? "Paid" : "Issued";
+	        String safeName = user.getName().replaceAll("\\s+", "_");
 
-            Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream(fileName));
-            document.open();
+	        String fileName = folder + File.separator + type + "_Fine_" + safeName + "_" + timeStamp + ".pdf";
 
-            // Title
-            Paragraph title = new Paragraph("Fine " + (paid ? "Payment Receipt" : "Issued"));
-            title.setAlignment(Paragraph.ALIGN_CENTER);
-            document.add(title);
+	        Document document = new Document();
+	        PdfWriter.getInstance(document, new FileOutputStream(fileName));
 
-            // User info
-            document.add(new Paragraph("User: " + user.getName() + " | ID: " + user.getId()));
+	        document.open();
 
-            // Media info
-            if (media != null) {
-                String mediaType = (media instanceof Book) ? "📚 Book" :
-                                   (media instanceof CD) ? "💿 CD" : "Media";
-                document.add(new Paragraph("Media: " + media.getTitle() + " | Type: " + mediaType));
-            }
+	        Paragraph title = new Paragraph("Fine " + (paid ? "Payment Receipt" : "Issued"));
+	        title.setAlignment(Element.ALIGN_CENTER);  
+	        document.add(title);
 
-            // Fine amount
-            document.add(new Paragraph("Amount: " + amount + " NIS 💰"));
+	        document.add(new Paragraph("User: " + user.getName() + " | ID: " + user.getId()));
 
-            // Timestamp
-            document.add(new Paragraph("Date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+	        if (media != null) {
+	            String mediaType = (media instanceof Book) ? "📚 Book"
+	                    : (media instanceof CD) ? "💿 CD"
+	                    : "Media";
 
-            document.close();
-            System.out.println("PDF receipt generated: " + fileName);
+	            document.add(new Paragraph("Media: " + media.getTitle() + " | Type: " + mediaType));
+	        }
 
-        } catch (Exception e) {
-            System.out.println("Error generating PDF: " + e.getMessage());
-        }
-    }
+	        document.add(new Paragraph("Amount: " + amount + " NIS 💰"));
+	        document.add(new Paragraph("Date: " +
+	                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+
+	        document.close();
+	        System.out.println("PDF receipt generated: " + fileName);
+	    }
+	    catch (Exception e) {
+	        System.out.println("Error generating PDF: " + e.getMessage());
+	    }
+	}
+
 }
