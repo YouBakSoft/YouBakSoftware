@@ -19,7 +19,7 @@
   </sonar.coverage.jacoco.xmlReportPaths>
    <sonar.organization>youbaksoft</sonar.organization>
            <sonar.coverage.exclusions>
-            /presentation/
+            **/presentation/**
         </sonar.coverage.exclusions>
     </properties>
 
