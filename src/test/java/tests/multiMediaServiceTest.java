@@ -42,7 +42,7 @@ class multiMediaServiceTest {
             	return storage;
             }
             @Override
-            protected void writeToFile(List<Media> list) {
+			public void writeToFile(List<Media> list) {
             	storage.clear();
             	storage.addAll(list);
             }
